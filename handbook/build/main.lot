@@ -1,0 +1,69 @@
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {1.1}{\ignorespaces MMS V2 System Scale Parameters\relax }}{12}{table.caption.3}%
+\contentsline {table}{\numberline {1.2}{\ignorespaces Canonical Machine Registry\relax }}{12}{table.caption.4}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces V1 Critical Bugs and Root Causes\relax }}{16}{table.caption.5}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces MQTT Topic Reference\relax }}{21}{table.3.1}%
+\contentsline {table}{\numberline {3.2}{\ignorespaces System Behaviour When Components Are Unavailable\relax }}{22}{table.caption.7}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {4.1}{\ignorespaces ESP32 GPIO Assignments for MMS V2 Access Node\relax }}{24}{table.caption.8}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Node Power Consumption Estimate\relax }}{27}{table.caption.9}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces MMS V2 RFID Card Schema --- Sector 1\relax }}{29}{table.caption.10}%
+\contentsline {table}{\numberline {5.2}{\ignorespaces Machine Permission Bitmask Examples\relax }}{30}{table.caption.11}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {6.1}{\ignorespaces Firmware Module Map\relax }}{33}{table.caption.12}%
+\contentsline {table}{\numberline {6.2}{\ignorespaces NVS Configuration Keys\relax }}{35}{table.caption.14}%
+\contentsline {table}{\numberline {6.3}{\ignorespaces Primary Display Content by State\relax }}{36}{table.caption.15}%
+\contentsline {table}{\numberline {6.4}{\ignorespaces LED Colour and Pattern per State\relax }}{37}{table.caption.16}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {8.1}{\ignorespaces Firestore vs RTDB usage in MMS V2\relax }}{44}{table.caption.17}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {9.1}{\ignorespaces Web Application Technology Stack\relax }}{50}{table.caption.18}%
+\contentsline {table}{\numberline {9.2}{\ignorespaces Web Application Feature Reference\relax }}{51}{table.9.2}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {10.1}{\ignorespaces Security Assumptions and Limitations\relax }}{55}{table.caption.19}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {11.1}{\ignorespaces Deployment Sequence\relax }}{56}{table.caption.20}%
+\contentsline {table}{\numberline {11.2}{\ignorespaces Secret Files and Their Contents\relax }}{58}{table.caption.21}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {12.1}{\ignorespaces Hardware Validation Sketches\relax }}{59}{table.caption.22}%
+\contentsline {table}{\numberline {12.2}{\ignorespaces Integration Test Summary\relax }}{60}{table.caption.23}%
+\contentsline {table}{\numberline {12.3}{\ignorespaces Integration Test Pass Criteria\relax }}{61}{table.caption.24}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {13.1}{\ignorespaces Maintenance Schedule\relax }}{62}{table.caption.25}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {14.1}{\ignorespaces Symptom to First Action\relax }}{65}{table.caption.26}%
+\contentsline {table}{\numberline {14.2}{\ignorespaces Diagnostic Log Prefixes\relax }}{66}{table.caption.27}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {15.1}{\ignorespaces Known Limitations and Improvement Path\relax }}{70}{table.caption.28}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {A.1}{\ignorespaces Complete GPIO Assignment Table for MMS V2 Access Node\relax }}{72}{table.A.1}%
+\contentsline {table}{\numberline {A.2}{\ignorespaces SPI Bus Signal Assignment\relax }}{72}{table.caption.29}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {C.1}{\ignorespaces Firestore Collections\relax }}{77}{table.caption.30}%
+\contentsline {table}{\numberline {C.2}{\ignorespaces /users collection fields\relax }}{77}{table.C.2}%
+\contentsline {table}{\numberline {C.3}{\ignorespaces /machines collection fields\relax }}{78}{table.C.3}%
+\contentsline {table}{\numberline {C.4}{\ignorespaces /sessions collection fields\relax }}{78}{table.C.4}%
+\contentsline {table}{\numberline {C.5}{\ignorespaces /revoked collection fields\relax }}{79}{table.C.5}%
+\contentsline {table}{\numberline {C.6}{\ignorespaces Required Firestore Composite Indexes\relax }}{79}{table.caption.31}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {D.1}{\ignorespaces Valid values for \texttt {/mms/nodes/\{id\}/state}\relax }}{81}{table.caption.32}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {E.1}{\ignorespaces Canonical Machine Registry\relax }}{83}{table.caption.33}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {F.1}{\ignorespaces Bill of Materials per Access Node\relax }}{87}{table.F.1}%
+\contentsline {table}{\numberline {F.2}{\ignorespaces Infrastructure Bill of Materials\relax }}{87}{table.caption.34}%
+\contentsline {table}{\numberline {F.3}{\ignorespaces Kiosk Station Bill of Materials\relax }}{88}{table.caption.35}%
+\contentsline {table}{\numberline {F.4}{\ignorespaces Total Deployment Cost Estimate (5 Nodes)\relax }}{88}{table.caption.36}%
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {I.1}{\ignorespaces Card Issuance Troubleshooting\relax }}{99}{table.caption.46}%
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {J.1}{\ignorespaces Required Arduino Libraries\relax }}{100}{table.caption.47}%
+\contentsline {table}{\numberline {J.2}{\ignorespaces Recommended Test Execution Order\relax }}{101}{table.caption.48}%
+\contentsline {table}{\numberline {J.3}{\ignorespaces Hardware Validation Common Failures\relax }}{103}{table.J.3}%

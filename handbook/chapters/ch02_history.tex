@@ -1,0 +1,105 @@
+%% Chapter 2 — History and V1 Post-Mortem
+\chapter{History and V1 Post-Mortem}
+\label{ch:history}
+
+\section{V1 System Background}
+
+The original Machine Management System (V1) was built as a student project to introduce RFID-based access control to the Tinkerers' Lab. The V1 system used ESP32 microcontrollers with MFRC522 RFID readers and a Flask-based kiosk to issue cards. However, the system couldn't worked end-to-end and was never deployed in production.
+
+A detailed audit of V1 identified multiple critical failures across the firmware, kiosk, web application, and backend layers.
+
+\section{V1 Failure Analysis}
+
+\begin{table}[H]
+\centering
+\caption{V1 Critical Bugs and Root Causes}
+\label{tab:v1_bugs}
+\begin{tabular}{C{0.8cm}L{4cm}L{5cm}L{4cm}}
+\toprule
+\textbf{\#} & \textbf{Bug} & \textbf{Effect} & \textbf{Root Cause} \\
+\midrule
+1 & RFID block mismatch & Kiosk writes blocks 1+2; nodes read block 5 — no valid read ever possible & Copy-paste error; never tested end-to-end \\
+2 & Unhashed PINs & PINs stored in plaintext on card and Firestore & No security review \\
+3 & Non-unique MQTT client IDs & All nodes use same ID; broker disconnects the previous when new node connects; only one node online at a time & MQTT spec not understood \\
+4 & No watchdog & Firmware hangs cause node to stay in relay-ON state indefinitely & Not implemented \\
+5 & Blocking \texttt{delay()} calls & Display updates and RFID polling compete; 200ms RFID scan blocks all other operations & Arduino delay() used in production code \\
+6 & Wrong MFRC522 RST pin & RST on GPIO 34 (input-only on ESP32); can never be driven LOW; RFID module never resets correctly & ESP32 GPIO capabilities not checked \\
+7 & Firestore: \texttt{addDoc} for users & User documents get auto-generated IDs instead of roll number as document ID; lookup by roll number impossible & Firebase API misuse \\
+8 & No MQTT$\rightarrow$Firebase bridge & Session events published to MQTT never reach Firestore & Missing architectural component \\
+9 & Machine name mismatch & \texttt{config.h} said ``Soldering Station 1'' for what is actually the 3D Printer & Manual entry error \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{V1 Deployment Blockers}
+
+Beyond the bugs above, V1 had architectural gaps that would prevent reliable deployment even if the bugs were fixed:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item No offline buffering: if WiFi is down during a session, the event is lost
+    \item No OTA: firmware updates require physical access to each node
+    \item No card revocation: a lost card cannot be invalidated without re-issuing every card
+    \item No session timeout: a student who leaves without removing their card causes the machine to run indefinitely
+    \item No admin remote control: no way to stop a machine remotely
+    \item No stale command handling: a stop command stored when a node is offline would be executed on reconnect regardless of whether a session is active
+\end{itemize}
+
+\section{V2 Design Decisions Driven by V1 Failures}
+
+Each major V2 design decision directly addresses a V1 failure:
+
+\begin{description}[leftmargin=2em,font=\bfseries]
+    \item[New RFID card schema (Sector 1, Blocks 4+5)] Fixes bug \#1. The schema is explicitly versioned (schema byte 0x02) so firmware can detect and reject V1 cards.
+    \item[HMAC-SHA256 PIN hashing] Fixes bug \#2. PIN is never stored in plaintext anywhere. The hash is truncated to 8 bytes (64 bits) — sufficient for a 4-digit PIN with rate limiting.
+    \item[Per-node unique MQTT client ID: \texttt{mms\_node\_\{id\}}] Fixes bug \#3. Client IDs are derived from the machine ID, guaranteed unique across all nodes.
+    \item[30-second TWDT hardware watchdog] Fixes bug \#4. If firmware stalls for any reason, the ESP32 resets within 30 seconds.
+    \item[Non-blocking millis()-based state machine] Fixes bug \#5. No \texttt{delay()} calls in production firmware. All timing is event-driven with \texttt{millis()} comparisons.
+    \item[MFRC522 RST moved to GPIO 27] Fixes bug \#6. GPIO 27 is a standard bidirectional GPIO that can be driven both HIGH and LOW.
+    \item[Firestore setDoc with roll number as key] Fixes bug \#7. \texttt{/users/\{roll\_number\}} is the document path; lookup by roll number is O(1).
+    \item[bridge.py MQTT$\rightarrow$Firebase bridge] Fixes bug \#8. All session events flow: ESP32 $\rightarrow$ MQTT $\rightarrow$ bridge.py $\rightarrow$ Firestore. Bridge runs as a systemd service with automatic restart.
+    \item[Canonical machine registry in three files] Fixes bug \#9. Machine names are documented in a central table. Any mismatch between config.h, seed\_machines.py, and config.py is a bug.
+\end{description}
+
+\section{Decision Records}
+
+The following key architectural decisions were made during V2 design and are recorded here for future maintainers.
+
+\subsection{Local Access Decision (No Cloud Call on Access Path)}
+
+Access decisions (grant/deny) are made entirely on the ESP32, using card data read from the RFID chip and a revocation list cached in LittleFS. This means:
+\begin{itemize}[leftmargin=1.5em]
+    \item Access works if WiFi is down
+    \item Access works if Firebase is down
+    \item Access works if the RPi is down
+    \item Latency of the access decision is deterministic (\textasciitilde{}100ms)
+\end{itemize}
+
+The trade-off is that card revocation can be delayed: a newly revoked card is denied only after the revocation list is pushed via MQTT and received by the node. If the node is offline, the revoked card may be accepted until the node reconnects.
+
+\subsection{Card Carries Permissions}
+
+Machine permissions are stored on the physical RFID card (Block 5, bytes 8--11, uint32 bitmask). The node does not look up permissions in Firebase or any network service. This means:
+\begin{itemize}[leftmargin=1.5em]
+    \item Permission changes require a card re-issue
+    \item Compromised cards carry wrong permissions until revoked
+    \item No network call needed for the access decision
+\end{itemize}
+
+Alternative considered: store permissions in Firebase and look them up on each tap. Rejected because it breaks offline operation.
+
+\subsection{Per-Card Sector Key Derivation}
+
+Each RFID card's Sector 1 is protected by a unique 6-byte key derived as:
+\[
+\text{sector\_key}[6] = \text{HMAC-SHA256}(\text{master\_key},\, \text{uid\_hex\_uppercase})[0..5]
+\]
+
+This ensures that knowledge of one card's sector key does not help an attacker forge another card. The master key is the only secret that must be protected system-wide.
+
+\subsection{5-Minute Command TTL}
+
+Remote stop commands have a 5-minute TTL. A command older than 300 seconds is discarded without execution. This prevents a node from executing a stop command that was issued while it was offline, after it reconnects and the context has changed.
+
+\subsection{MQTT Buffer Size 1536 Bytes}
+
+PubSubClient's default buffer is 256 bytes, which is insufficient for MQTT messages containing the full revocation list (multiple UIDs as JSON). The buffer was increased to 1536 bytes in \texttt{mqtt\_client.cpp}.

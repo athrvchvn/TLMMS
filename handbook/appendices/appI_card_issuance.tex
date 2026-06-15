@@ -1,0 +1,111 @@
+%% Appendix I — Card Issuance Procedures
+\chapter{Card Issuance Procedures}
+\label{app:card_issuance}
+
+\section{Overview}
+
+Every student who uses lab machines needs a personalised RFID card. This appendix provides the complete card issuance reference for kiosk operators.
+
+\section{Required Setup}
+
+Before issuing any cards, confirm:
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item station\_writer.ino is flashed with correct master key
+    \item Flask kiosk app is running: \texttt{python3 app.py}
+    \item Firebase Firestore is reachable (internet connection)
+    \item Blank MIFARE Classic 1K cards are available
+    \item A test node is available to verify issued cards
+\end{itemize}
+
+\section{Issuing a New Card}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item If student not yet in Firestore: go to web app $\rightarrow$ User Management $\rightarrow$ Add User. Fill in roll number, name, email, PIN, machine permissions. Click Save.
+    \item Open kiosk: \texttt{http://localhost:5000}
+    \item Select the student's roll number from the dropdown
+    \item Verify the machine permissions shown match what was set in the web app
+    \item Click ``Issue Card''
+    \item App shows: ``AWAITING\_CARD — place card on reader''
+    \item Place one blank MIFARE Classic 1K card face-down on the MFRC522 reader
+    \item Wait for LED/display confirmation on the kiosk
+    \item App shows: ``WRITE\_SUCCESS''
+    \item Kiosk updates Firestore: \texttt{/users/\{roll\}} gets \texttt{card\_uid} and \texttt{issued\_at}
+    \item \textbf{Verify}: take card to a test node. Insert card. OLED should show the student's roll number and ``Access Granted'' for permitted machines.
+    \item Hand card to student with instructions on use
+\end{enumerate}
+
+\section{Re-issuing a Lost Card}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Web app $\rightarrow$ User Management $\rightarrow$ select student $\rightarrow$ Revoke Card
+    \item Confirm revocation reason: ``lost''
+    \item Wait 10 seconds for revocation to propagate to all nodes
+    \item Issue a new card following the new card procedure above
+    \item The new card has a new UID and therefore a new sector key --- the old card cannot be used even if found
+\end{enumerate}
+
+\section{Re-issuing a Damaged Card (Not Lost)}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item NO revocation needed (physical card is destroyed; cannot be used by anyone)
+    \item Issue a new card following the new card procedure
+    \item The old UID may remain in Firestore \texttt{card\_uid} field until the new card is issued, at which point it is overwritten
+\end{enumerate}
+
+\section{Updating Machine Permissions}
+
+If a student needs access to additional machines (or has access removed):
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Web app $\rightarrow$ User Management $\rightarrow$ select student $\rightarrow$ Edit Permissions
+    \item Update the machine checkboxes
+    \item Click Save (Firestore is updated immediately)
+    \item \textbf{A new card must be issued} --- the permission bitmask is stored on the physical card; Firestore update alone does not update existing cards
+    \item Issue a new card following the new card procedure (old card becomes invalid for the new permissions, though it still works with old permissions until revoked)
+    \item If old card should no longer work at all: revoke it first, then issue new card
+\end{enumerate}
+
+\section{Bulk Card Issuance}
+
+For issuing cards to a new batch of students at semester start:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Export student list from institute system (roll number, name, email)
+    \item Use batch user creation script (if available) or create users individually in web app
+    \item Assign machine permissions per student role (lab regular, advanced user, etc.)
+    \item Set up kiosk station in a central location
+    \item Call students in batches of 10--15
+    \item Issue cards assembly-line style: 1--2 minutes per card
+    \item Verify every 5th card at a test node (spot-check)
+\end{enumerate}
+
+Expected throughput: 20--30 cards per hour with one kiosk operator.
+
+\section{Card Stock Management}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Keep minimum 20 blank cards in stock at all times
+    \item Reorder from Robu.in or similar: MIFARE Classic 1K 13.56MHz cards
+    \item Bulk order: 100 cards recommended for initial deployment
+    \item Estimated annual replacement rate: 10--20\% of active students (loss and graduation)
+    \item Store blank cards away from strong magnets and direct sunlight
+\end{itemize}
+
+\section{Troubleshooting Card Issuance}
+
+\begin{table}[H]
+\centering
+\caption{Card Issuance Troubleshooting}
+\begin{tabular}{L{4cm}L{5cm}L{5.5cm}}
+\toprule
+\textbf{Problem} & \textbf{Likely Cause} & \textbf{Fix} \\
+\midrule
+WRITE\_FAILED & Card moved during write & Hold card still; retry \\
+WRITE\_FAILED & Card is not MIFARE Classic 1K & Use correct card type \\
+WRITE\_FAILED & Previous different master key & Discard card; use fresh card \\
+AWAITING\_CARD timeout & Card not detected & Check HC89/MFRC522 connection; try different card \\
+WRITE\_SUCCESS but node denies & Different master key in node vs kiosk & Verify both use same 32-byte key \\
+App crash on start & secrets.py not filled & Fill \texttt{MASTER\_KEY} in secrets.py \\
+\bottomrule
+\end{tabular}
+\end{table}

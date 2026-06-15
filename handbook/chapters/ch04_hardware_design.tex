@@ -1,0 +1,194 @@
+%% Chapter 4 — Hardware Design
+\chapter{Hardware Design}
+\label{ch:hardware}
+
+\section{ESP32 NodeMCU 38-pin}
+
+The ESP32 NodeMCU (38-pin variant) is the central controller for each access node. Key specifications relevant to MMS V2:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Dual-core Xtensa LX6 at up to 240 MHz
+    \item 520 KB SRAM; 4 MB flash
+    \item Built-in 802.11 b/g/n WiFi (2.4 GHz only)
+    \item 34 programmable GPIOs; some input-only
+    \item Hardware SPI, I2C, UART peripherals
+    \item \texttt{mbedTLS} cryptography library in ROM (provides HMAC-SHA256 without adding flash)
+    \item Dual OTA flash partitions; watchdog timer
+    \item 3.3V operating voltage; 5V tolerant on Vin pin
+\end{itemize}
+
+\begin{warnbox}
+\textbf{GPIO 34--39 are INPUT ONLY.} They cannot be driven as outputs and have no internal pull-up resistors. In V1, the MFRC522 RST pin was connected to GPIO 34, which cannot be driven LOW --- the reset never worked. V2 moves RST to GPIO 27. The rotary encoder CLK (GPIO 34) and DT (GPIO 35) are correctly used as inputs with external 10k$\Omega$ pull-up resistors to 3.3V.
+\end{warnbox}
+
+\section{GPIO Pin Assignments}
+
+\begin{table}[H]
+\centering
+\caption{ESP32 GPIO Assignments for MMS V2 Access Node}
+\label{tab:gpio}
+\begin{tabular}{C{2cm}L{4cm}C{2.5cm}L{2.5cm}L{3cm}}
+\toprule
+\textbf{GPIO} & \textbf{Signal} & \textbf{Direction} & \textbf{Pull resistor} & \textbf{Notes} \\
+\midrule
+5  & MFRC522 SS (SDA) & OUT & None & SPI chip select \\
+18 & SPI SCK           & OUT & None & Shared: RFID + OLED64 \\
+19 & SPI MISO          & IN  & None & Shared: RFID + OLED64 \\
+23 & SPI MOSI          & OUT & None & Shared: RFID + OLED64 \\
+27 & MFRC522 RST       & OUT & None & Active LOW reset \\
+17 & OLED64 DC         & OUT & None & Data/Command select \\
+16 & OLED64 CS         & OUT & None & SPI chip select \\
+4  & OLED64 RST        & OUT & None & Active LOW reset \\
+21 & OLED32 SDA        & BIDIR & Module 4.7k$\Omega$ & I2C data \\
+22 & OLED32 SCL        & OUT & Module 4.7k$\Omega$ & I2C clock \\
+26 & Relay IN          & OUT & None & LOW before \texttt{pinMode} \\
+32 & HC89 slot sensor  & IN  & INPUT\_PULLUP & LOW = card present \\
+33 & WS2812 DIN        & OUT & None & Via 470$\Omega$ resistor \\
+34 & Encoder CLK       & IN  & EXT 10k$\Omega$ to 3V3 & Input-only; no internal pull-up \\
+35 & Encoder DT        & IN  & EXT 10k$\Omega$ to 3V3 & Input-only; no internal pull-up \\
+25 & Encoder SW        & IN  & INPUT\_PULLUP & Button press \\
+2  & Onboard LED       & OUT & None & WiFi status indicator \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Component Details}
+
+\subsection{MFRC522 RFID Reader}
+
+The MFRC522 is a 13.56 MHz RFID reader module compatible with MIFARE cards. In MMS V2 it is connected via SPI.
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Supply voltage}: 3.3V (NOT 5V --- module is not 5V tolerant)
+    \item \textbf{SPI speed}: up to 10 MHz; MMS firmware uses 4 MHz for stability
+    \item \textbf{Pin labelling}: the ``SDA'' pin on the module is the SPI chip select (SS), not I2C SDA --- this is a common source of confusion
+    \item \textbf{IRQ pin}: not used in MMS V2; leave unconnected (NC)
+    \item \textbf{Card detection}: firmware polls \texttt{MFRC522::PICC\_IsNewCardPresent()} rather than using the IRQ line
+\end{itemize}
+
+\subsection{SSD1306 128$\times$64 SPI OLED (Primary Display)}
+
+This is the main user-facing display. It shows machine state, roll number, session timer, and status messages.
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Controller: SSD1306
+    \item Resolution: 128$\times$64 pixels, monochrome
+    \item Interface: SPI (4-wire: SCK, MOSI, DC, CS) plus RST
+    \item Supply: 3.3V
+    \item Shared SPI bus with MFRC522; multiplexed via chip select pins
+\end{itemize}
+
+\subsection{SSD1306 128$\times$32 I2C OLED (Status Strip)}
+
+This is the always-visible status display: WiFi/MQTT connectivity dots, machine name, NTP time.
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Controller: SSD1306
+    \item Resolution: 128$\times$32 pixels, monochrome
+    \item Interface: I2C, address 0x3C
+    \item Supply: 3.3V
+    \item Module has onboard 4.7k$\Omega$ pull-ups on SDA and SCL --- no external resistors needed
+\end{itemize}
+
+\subsection{HC89 Optical IR Slot Sensor}
+
+The HC89 is an infrared photointerrupter slot sensor that detects card insertion.
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Slot width: \textasciitilde{}6mm (MIFARE card thickness: 0.76mm --- fits well)
+    \item Output type: open-collector (active LOW when card blocks IR beam)
+    \item Supply: 3.3V or 5V (check module datasheet --- most accept 3.3V)
+    \item Configured as \texttt{INPUT\_PULLUP} on GPIO 32
+    \item Firmware debounce: 50ms (ignores transitions shorter than 50ms)
+    \item A card in the slot gives signal LOW; no card gives signal HIGH
+\end{itemize}
+
+\subsection{Relay Module (Mechanical or SSR)}
+
+\subsubsection{Mechanical Relay}
+\begin{itemize}[leftmargin=1.5em]
+    \item Typical: SRD-05VDC-SL-C (5V coil, 10A 250V AC rated)
+    \item Control: GPIO 26 via optocoupler on relay board
+    \item Default active HIGH (\texttt{relay\_active\_high = true} in config)
+    \item Relay board takes 5V on VCC; control signal from 3.3V GPIO is sufficient via optocoupler
+\end{itemize}
+
+\subsubsection{Solid-State Relay (SSR)}
+Recommended for high-cycling loads (soldering station on/off frequently) and for the laser cutter (noise sensitivity).
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Typical: SSR-25DA (3--32V DC control, 25A 380V AC load)
+    \item Control: GPIO 26 (3.3V signal drives 3--32V DC input directly)
+    \item Active HIGH (\texttt{relay\_active\_high = true})
+    \item Heat sink required for loads above 10A
+\end{itemize}
+
+\begin{notebox}
+The \texttt{relay\_active\_high} configuration is pushed from Firebase via MQTT to each node's NVS. This means the relay polarity can be changed remotely without reflashing. Set this value correctly in the Firestore \texttt{/machines/\{id\}} document when seeding.
+\end{notebox}
+
+\subsection{WS2812B RGB LED}
+
+A single WS2812B LED provides colour-coded system state feedback.
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Supply: 5V (directly from Vin --- NOT 3.3V)
+    \item Data: GPIO 33 via 470$\Omega$ series resistor (protects against inductive spikes from long wire runs)
+    \item 100$\mu$F electrolytic capacitor across VCC--GND at the LED (absorbs power-up surge)
+    \item Colour order: \texttt{NEO\_GRB} (some clone modules use different order --- see Appendix~\ref{app:wiring})
+\end{itemize}
+
+\subsection{EC11 Rotary Encoder}
+
+The EC11 rotary encoder is installed in the hardware but not yet used in production firmware (Phase 4 --- PIN entry at machine).
+
+\begin{itemize}[leftmargin=1.5em]
+    \item CLK on GPIO 34 (input-only) --- requires external 10k$\Omega$ pull-up to 3.3V
+    \item DT on GPIO 35 (input-only) --- requires external 10k$\Omega$ pull-up to 3.3V
+    \item SW (push button) on GPIO 25 --- uses internal \texttt{INPUT\_PULLUP}
+\end{itemize}
+
+\subsection{Power Supply}
+
+Each node uses a HiLink HLK-PM01 (5V 1W AC-DC converter) to derive 5V from mains:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Input: 90--264V AC
+    \item Output: 5V DC, 600mA
+    \item The 5V feeds: ESP32 Vin, relay module VCC, WS2812 VCC
+    \item The ESP32's internal LDO produces 3.3V for all other components
+    \item A 5A fuse must be placed on the AC input before the HiLink
+\end{itemize}
+
+\begin{warnbox}
+\textbf{Safety:} The HiLink operates at 240V AC. Treat it as a live shock hazard at all times. All AC wiring must be completed, routed through cable glands, and the enclosure must be closed before the node is powered from mains. Always test 5V DC circuitry with a USB power bank before connecting to mains.
+\end{warnbox}
+
+\section{Power Budget}
+
+\begin{table}[H]
+\centering
+\caption{Node Power Consumption Estimate}
+\begin{tabular}{L{5cm}C{3cm}C{3cm}}
+\toprule
+\textbf{Component} & \textbf{Typical (mA)} & \textbf{Peak (mA)} \\
+\midrule
+ESP32 (WiFi active, 240MHz) & 160 & 250 \\
+MFRC522 & 13 & 26 \\
+SSD1306 64px OLED & 20 & 25 \\
+SSD1306 32px OLED & 15 & 20 \\
+HC89 & 20 & 20 \\
+WS2812B (1 LED, white full) & 60 & 60 \\
+Relay coil (mechanical) & 70 & 70 \\
+\midrule
+\textbf{Total (peak)} & & \textbf{471 mA} \\
+\midrule
+HiLink HLK-PM01 capacity & & 600 mA \\
+Margin & & 127 mA (21\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{notebox}
+The power margin is adequate but not generous. Avoid adding components to the 5V rail beyond the designed BOM. If an SSR is added (replacing mechanical relay), remove the relay coil consumption --- SSRs consume \textasciitilde{}10mA on the control side.
+\end{notebox}

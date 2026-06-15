@@ -1,0 +1,214 @@
+%% Appendix G — Wiring Diagrams
+\chapter{Wiring Diagrams}
+\label{app:wiring}
+
+\section{Full Node Wiring Diagram}
+
+\begin{figure}[H]
+\centering
+\begin{verbatim}
+                        ESP32 NodeMCU 38-pin
+              ┌──────────────────────────────────────┐
+              │ 3V3  ─────────────────────────────── │──── MFRC522 3.3V
+              │                                      │──── OLED64 VCC
+              │                                      │──── OLED32 VCC
+              │                                      │──── HC89 VCC
+              │ GND  ─────────────────────────────── │──── All module GNDs
+              │ Vin  ─────────────────────────────── │──── HiLink 5V+
+              │                                      │──── WS2812 VCC*
+              │                                      │──── Relay module VCC
+              │ GPIO  5 ─────── MFRC522 SDA (SS)     │
+              │ GPIO 18 ─────── MFRC522 SCK ──────── │──── OLED64 D0
+              │ GPIO 19 ─────── MFRC522 MISO         │
+              │ GPIO 23 ─────── MFRC522 MOSI ──────  │──── OLED64 D1
+              │ GPIO 27 ─────── MFRC522 RST          │
+              │ GPIO 17 ─────── OLED64 DC            │
+              │ GPIO 16 ─────── OLED64 CS            │
+              │ GPIO  4 ─────── OLED64 RES           │
+              │ GPIO 21 ─────── OLED32 SDA           │
+              │ GPIO 22 ─────── OLED32 SCL           │
+              │ GPIO 26 ─────── Relay IN             │
+              │ GPIO 32 ─────── HC89 OUT             │
+              │ GPIO 33 ──[470~$\Omega$]─── WS2812 DIN       │
+              │ GPIO 34 ──[10k$\Omega$ to 3V3]── Enc CLK   │
+              │ GPIO 35 ──[10k$\Omega$ to 3V3]── Enc DT    │
+              │ GPIO 25 ─────── Encoder SW           │
+              └──────────────────────────────────────┘
+
+* WS2812 VCC: [100µF cap across VCC-GND at LED module]
+\end{verbatim}
+\caption{Full Node Wiring Diagram}
+\label{fig:wiring_full}
+\end{figure}
+
+\section{MFRC522 Connection Detail}
+
+\begin{figure}[H]
+\centering
+\begin{verbatim}
+MFRC522 module (8 pins, left to right):
+  Pin 1: SDA  ────── GPIO  5   (SPI chip select — NOT I2C SDA!)
+  Pin 2: SCK  ────── GPIO 18   (shared SPI clock)
+  Pin 3: MOSI ────── GPIO 23   (shared SPI MOSI)
+  Pin 4: MISO ────── GPIO 19   (shared SPI MISO)
+  Pin 5: IRQ  ────── NC        (not connected)
+  Pin 6: GND  ────── GND
+  Pin 7: RST  ────── GPIO 27   (active LOW reset)
+  Pin 8: 3.3V ────── 3V3       (NOT 5V — module is 3.3V only)
+\end{verbatim}
+\caption{MFRC522 Connection Detail}
+\label{fig:wiring_rfid}
+\end{figure}
+
+\section{SSD1306 128x64 SPI OLED Connection}
+
+\begin{figure}[H]
+\centering
+\begin{verbatim}
+OLED 128x64 SPI module (7 pins):
+  Pin 1: GND ────── GND
+  Pin 2: VCC ────── 3V3
+  Pin 3: D0  ────── GPIO 18   (shared SCK with MFRC522)
+  Pin 4: D1  ────── GPIO 23   (shared MOSI with MFRC522)
+  Pin 5: RES ────── GPIO  4   (reset; active LOW)
+  Pin 6: DC  ────── GPIO 17   (Data/Command select)
+  Pin 7: CS  ────── GPIO 16   (SPI chip select)
+\end{verbatim}
+\caption{SSD1306 128x64 SPI OLED Connection}
+\label{fig:wiring_oled64}
+\end{figure}
+
+\section{SSD1306 128x32 I2C OLED Connection}
+
+\begin{figure}[H]
+\centering
+\begin{verbatim}
+OLED 128x32 I2C module (4 pins):
+  GND ────── GND
+  VCC ────── 3V3
+  SCL ────── GPIO 22
+  SDA ────── GPIO 21
+
+  Note: Module has onboard 4.7k$\Omega$ pull-ups.
+        No external pull-up resistors needed.
+        I2C address: 0x3C
+\end{verbatim}
+\caption{SSD1306 128x32 I2C OLED Connection}
+\label{fig:wiring_oled32}
+\end{figure}
+
+\section{WS2812B LED Connection}
+
+\begin{figure}[H]
+\centering
+\begin{verbatim}
+WS2812B single LED:
+
+  GPIO 33 ──[470~$\Omega$]──── DIN (data in)
+  Vin (5V) ───┬──── VCC
+             [+]
+           [100µF]    <- electrolytic, observe polarity
+             [-]
+  GND ────────┴──── GND
+
+  The 470~$\Omega$ resistor protects against signal reflections on long wire runs.
+  The 100µF capacitor must be placed AT the LED, not at the ESP32.
+\end{verbatim}
+\caption{WS2812B LED Connection}
+\label{fig:wiring_ws2812}
+\end{figure}
+
+\section{HC89 Slot Sensor Connection}
+
+\begin{figure}[H]
+\centering
+\begin{verbatim}
+HC89 (3 or 4 pin):
+  VCC ────── 3V3  (or 5V if module requires it; check datasheet)
+  GND ────── GND
+  OUT ────── GPIO 32  (configured as INPUT_PULLUP in firmware)
+
+  Signal behaviour:
+    Card in slot  -> OUT = LOW  (IR beam blocked)
+    No card       -> OUT = HIGH (IR beam reaches sensor)
+    Firmware debounce: 50ms minimum hold time before state change
+\end{verbatim}
+\caption{HC89 Slot Sensor Connection}
+\label{fig:wiring_hc89}
+\end{figure}
+
+\section{EC11 Rotary Encoder Connection}
+
+\begin{figure}[H]
+\centering
+\begin{verbatim}
+EC11 Rotary Encoder:
+  CLK ──[10k$\Omega$]──── 3V3          GPIO 34 ──── CLK
+  DT  ──[10k$\Omega$]──── 3V3          GPIO 35 ──── DT
+  SW  (push button, one side)   GPIO 25 ──── SW  (INPUT_PULLUP in firmware)
+  SW  (push button, other side) GND
+  GND ──── GND
+
+  WARNING: GPIO 34 and 35 are INPUT-ONLY pins with NO internal pull-up.
+           External 10k$\Omega$ resistors to 3.3V are REQUIRED.
+           Without them, the encoder signal is undefined and will
+           trigger false interrupts.
+\end{verbatim}
+\caption{EC11 Rotary Encoder Connection}
+\label{fig:wiring_encoder}
+\end{figure}
+
+\section{Relay Module Connection}
+
+\begin{figure}[H]
+\centering
+\begin{verbatim}
+Mechanical Relay Module (5V, optocoupler):
+  VCC  ──── Vin (5V)
+  GND  ──── GND
+  IN   ──── GPIO 26
+
+  Load (screw terminals):
+  COM  ──── AC live wire from fused mains input
+  NO   ──── Machine AC live wire in
+  NC   ──── Not connected (normally closed; machine would run when relay is OFF)
+
+  relay_active_high = true (HIGH = relay energised = machine ON)
+
+Solid-State Relay (SSR 25DA):
+  Control IN+  ──── GPIO 26  (3.3V signal; SSR accepts 3-32V DC)
+  Control IN-  ──── GND
+  Load 1       ──── AC live wire in
+  Load 2       ──── Machine AC live wire in
+
+  relay_active_high = true (HIGH = SSR conducts = machine ON)
+\end{verbatim}
+\caption{Relay Module Connection}
+\label{fig:wiring_relay}
+\end{figure}
+
+\section{Power Distribution}
+
+\begin{figure}[H]
+\centering
+\begin{verbatim}
+AC Mains 240V ──[Fuse 5A]──── HiLink HLK-PM01
+                                    │ 5V DC out
+                    ┌───────────────┼───────────────┐
+                    │               │               │
+              ESP32 Vin        WS2812 VCC      Relay VCC
+              (5V -> 3.3V         (5V direct)    (5V direct)
+              internal LDO)
+                    │
+              ESP32 3V3 pin
+                    │
+         ┌──────────┼──────────┐
+         │          │          │
+     MFRC522     OLED64     OLED32
+      3.3V        VCC         VCC
+                              │
+                           HC89 VCC
+\end{verbatim}
+\caption{Power Distribution Diagram}
+\label{fig:power}
+\end{figure}

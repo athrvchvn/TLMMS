@@ -1,0 +1,106 @@
+%% Appendix F — Bill of Materials
+\chapter{Bill of Materials}
+\label{app:bom}
+
+\section{Per-Node Components}
+
+The following table lists all components required for one access node.
+
+\begin{longtable}{C{0.5cm}L{4.5cm}C{1.5cm}L{3cm}L{4cm}}
+\toprule
+\textbf{\#} & \textbf{Component} & \textbf{Qty} & \textbf{Approx. Cost} & \textbf{Notes} \\
+\midrule
+\endhead
+1  & ESP32 NodeMCU 38-pin Dev Board & 1 & Rs.350  & Must be 38-pin variant; 30-pin has different GPIO layout \\
+2  & MFRC522 RFID Reader Module     & 1 & Rs.150  & 3.3V; comes with card and key fob \\
+3  & SSD1306 OLED 128$\times$64 SPI  & 1 & Rs.200  & 7-pin; white display recommended \\
+4  & SSD1306 OLED 128$\times$32 I2C  & 1 & Rs.150  & 4-pin; I2C address 0x3C \\
+5  & HC89 IR Slot Sensor            & 1 & Rs.80   & Slot width must accept MIFARE card thickness \\
+6  & 5V Relay Module (single channel) & 1 & Rs.80  & With optocoupler; for soldering station / grinder \\
+7  & SSR 25A (Solid State Relay)    & 1 & Rs.350  & For laser cutter; rated for inductive load \\
+8  & WS2812B RGB LED (5V)           & 1 & Rs.30   & Single LED; strip cut to 1 unit \\
+9  & HiLink HLK-PM01 (5V 1W)       & 1 & Rs.220  & AC-DC converter; 90-264V in, 5V/600mA out \\
+10 & 470$\Omega$ resistor            & 1 & Rs.2    & For WS2812 data line; 1/4W \\
+11 & 100µF 16V electrolytic capacitor & 1 & Rs.5  & For WS2812 power supply filtering \\
+12 & 10k$\Omega$ resistor            & 2 & Rs.2    & For encoder CLK and DT pull-up \\
+13 & EC11 Rotary Encoder            & 1 & Rs.60   & With push button; 20 detents per revolution \\
+14 & ABS project enclosure          & 1 & Rs.200  & Min 150mm × 100mm × 50mm \\
+15 & Cable gland PG9 (AC in)        & 1 & Rs.20   & For mains cable entry \\
+16 & Cable gland PG7 (machine out)  & 1 & Rs.20   & For relay output cable \\
+17 & 3-pin screw terminal blocks    & 3 & Rs.30   & For relay, HC89, power connections \\
+18 & AC fuse holder + 5A fuse       & 1 & Rs.30   & 5A; on AC input before HiLink \\
+19 & 3-core mains cable (1m)        & 1 & Rs.40   & For AC input to node \\
+20 & 2-core wire (1m, 1mm$^2$)      & 1 & Rs.25   & For relay output to machine \\
+21 & Female dupont jumper cables (20cm) & 1 set & Rs.50 & For internal GPIO connections \\
+22 & USB cable (Type-A to Micro-B)  & 1 & Rs.50   & For programming; must be data cable \\
+23 & Perfboard (100mm × 80mm)       & 1 & Rs.30   & For mounting ESP32 and connectors \\
+24 & M3 standoffs + screws          & 1 set & Rs.30 & For mounting boards inside enclosure \\
+25 & Heat shrink tubing (assorted)  & 1 set & Rs.30 & For AC wire insulation \\
+26 & Electrical tape                & 1 & Rs.30   & Secondary insulation on AC connections \\
+27 & Solder + flux                  & --- & Rs.50  & For perfboard assembly \\
+28 & MIFARE Classic 1K cards        & 5 & Rs.150  & Blank; for initial testing and extras \\
+\midrule
+& \textbf{Per-node total (estimated)} & & \textbf{Rs.2,260} & Includes relay and SSR; actual cost depends on relay type used \\
+\bottomrule
+\caption{Bill of Materials per Access Node}
+\label{tab:bom_node}
+\end{longtable}
+
+\section{Infrastructure Components (One-time)}
+
+\begin{table}[H]
+\centering
+\caption{Infrastructure Bill of Materials}
+\begin{tabular}{L{5cm}C{1cm}L{3cm}L{5cm}}
+\toprule
+\textbf{Component} & \textbf{Qty} & \textbf{Cost} & \textbf{Notes} \\
+\midrule
+Raspberry Pi 4B (2GB) & 1 & Rs.4,500 & Or RPi 3B+; 1GB RAM minimum \\
+Official RPi power supply (5.1V 3A) & 1 & Rs.800 & NOT a phone charger \\
+MicroSD card 32GB Class 10 & 1 & Rs.500 & Samsung Endurance Pro recommended \\
+Ethernet cable (2m) & 1 & Rs.100 & Cat5e or better \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Kiosk Station Components}
+
+\begin{table}[H]
+\centering
+\caption{Kiosk Station Bill of Materials}
+\begin{tabular}{L{5cm}C{1cm}L{3cm}L{5cm}}
+\toprule
+\textbf{Component} & \textbf{Qty} & \textbf{Cost} & \textbf{Notes} \\
+\midrule
+Laptop / PC & 1 & Existing & Any Linux/Mac/Windows with USB \\
+ESP32 NodeMCU 38-pin & 1 & Rs.350 & Dedicated to kiosk; runs station\_writer.ino \\
+MFRC522 RFID Reader Module & 1 & Rs.150 & Dedicated to kiosk \\
+USB cable & 1 & Rs.50 & Laptop to ESP32 \\
+MIFARE Classic 1K cards (bulk) & 100 & Rs.3,000 & Initial stock for all students \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Total Cost Estimate}
+
+\begin{table}[H]
+\centering
+\caption{Total Deployment Cost Estimate (5 Nodes)}
+\begin{tabular}{L{7cm}R{4cm}}
+\toprule
+\textbf{Item} & \textbf{Cost} \\
+\midrule
+5 access nodes (Rs.2,260 each) & Rs.11,300 \\
+Infrastructure (RPi + accessories) & Rs.5,900 \\
+Kiosk station & Rs.500 \\
+MIFARE cards (100 cards) & Rs.3,000 \\
+Spare components (10\% buffer) & Rs.1,500 \\
+\midrule
+\textbf{Total (approximate)} & \textbf{Rs.22,200} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{notebox}
+Costs are approximate as of 2024. Prices for ESP32 boards and components vary by supplier. Robu.in, Quartzcomponents, and Probots are reliable Indian suppliers. International suppliers (AliExpress) are cheaper but have longer lead times.
+\end{notebox}

@@ -1,0 +1,102 @@
+%% Chapter 12 — Testing and Validation
+\chapter{Testing and Validation}
+\label{ch:testing}
+
+\section{Validation Strategy}
+
+MMS V2 validation is done at three levels:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{Hardware validation}: Each component on a node is tested in isolation with a dedicated Arduino sketch before production firmware is flashed.
+    \item \textbf{Integration testing}: All system components are tested together end-to-end after provisioning.
+    \item \textbf{Production verification}: After deploying to a live machine, basic access tests are repeated to confirm real-world behaviour.
+\end{enumerate}
+
+\section{Hardware Validation Suite}
+
+The hardware validation suite is in \texttt{v2/hardware\_validation/}. It consists of 12 individual sketches plus one full-node integration sketch.
+
+\begin{table}[H]
+\centering
+\caption{Hardware Validation Sketches}
+\begin{tabular}{C{1.2cm}L{3.5cm}L{6cm}C{2.5cm}}
+\toprule
+\textbf{\#} & \textbf{Sketch} & \textbf{What it tests} & \textbf{Time} \\
+\midrule
+01 & \texttt{01\_nvs} & NVS read/write/clear & 5 min \\
+02 & \texttt{02\_rfid} & MFRC522 SPI, card UID read, auth & 10 min \\
+03 & \texttt{03\_relay} & Relay GPIO, continuity & 5 min \\
+04 & \texttt{04\_oled\_spi} & 128$\times$64 SPI OLED display & 5 min \\
+05 & \texttt{05\_oled\_i2c} & 128$\times$32 I2C OLED display & 5 min \\
+06 & \texttt{06\_hc89} & Slot sensor input, debounce & 5 min \\
+07 & \texttt{07\_ws2812} & WS2812 LED R/G/B cycle & 5 min \\
+08 & \texttt{08\_combined\_display} & All displays simultaneously & 10 min \\
+09 & \texttt{09\_rotary\_encoder} & EC11 CLK/DT/SW, interrupt & 10 min \\
+10 & \texttt{10\_wifi} & WiFi connect, NTP sync, reconnect & 10 min \\
+11 & \texttt{11\_mqtt} & MQTT QoS 0/1, retained, reconnect & 15 min \\
+12 & \texttt{12\_littlefs} & LittleFS mount/write/rotate/recover & 10 min \\
+99 & \texttt{99\_full\_node} & All hardware simultaneously & 10 min \\
+\midrule
+& & \textbf{Total} & \textbf{\textasciitilde{}2h 15m} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The recommended execution order minimises re-wiring: tests are grouped by wiring requirements. See \texttt{v2/hardware\_validation/EXECUTION\_PLAN.md} for the exact wiring diagrams, expected serial output, pass/fail criteria, and troubleshooting trees for each test.
+
+\section{Integration Test Suite}
+
+Integration tests verify the entire system working together. They are documented in the Deployment Package (Section 12) and briefly summarised here:
+
+\begin{table}[H]
+\centering
+\caption{Integration Test Summary}
+\begin{tabular}{C{1cm}L{4.5cm}L{9cm}}
+\toprule
+\textbf{\#} & \textbf{Test} & \textbf{Verifies} \\
+\midrule
+1 & Normal session & Card tap $\rightarrow$ relay ON $\rightarrow$ RTDB updates $\rightarrow$ card remove $\rightarrow$ Firestore session logged \\
+2 & Access denial & Non-permitted card $\rightarrow$ relay stays OFF $\rightarrow$ no Firestore document \\
+3 & Session timeout & Card in slot past limit $\rightarrow$ relay turns OFF automatically $\rightarrow$ end\_reason: timeout \\
+4 & Remote stop & Dashboard Stop button $\rightarrow$ relay OFF within 2s $\rightarrow$ end\_reason: remote\_stop \\
+5 & Card revocation & Revoke in web app $\rightarrow$ node denies within 5s \\
+6 & Offline session & RPi down $\rightarrow$ access still granted $\rightarrow$ session in LittleFS $\rightarrow$ reconnect $\rightarrow$ session in Firestore \\
+7 & Stale command TTL & Command posted when offline $\rightarrow$ reconnect after 6 min $\rightarrow$ command discarded \\
+8 & Config push & Change session limit in web app $\rightarrow$ node applies within 5s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A node passes integration testing if Tests 1--8 all pass.
+
+\section{Pass/Fail Criteria}
+
+\begin{table}[H]
+\centering
+\caption{Integration Test Pass Criteria}
+\begin{tabular}{C{1cm}L{8cm}L{5.5cm}}
+\toprule
+\textbf{\#} & \textbf{Pass criterion} & \textbf{Notes} \\
+\midrule
+1 & Relay ON $<$1s after card; session in Firestore with correct fields & Most important test \\
+2 & Relay never ON; zero Firestore documents & \\
+3 & Relay OFF at exact timeout; end\_reason = ``timeout'' & Temporarily change limit to 1 min \\
+4 & Relay OFF within 2s of clicking Stop & Requires active session \\
+5 & Denial within 5s of web app revocation & \\
+6 & Session in Firestore after RPi restart & Must match content of LittleFS log \\
+7 & No relay action; command acknowledged in RTDB & Wait 6+ min after posting command \\
+8 & OLED shows new limit within 5s & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Regression Testing After Firmware Updates}
+
+After any firmware update (OTA or direct flash), run at minimum:
+\begin{itemize}[leftmargin=1.5em]
+    \item Integration Test 1 (normal session)
+    \item Integration Test 4 (remote stop)
+    \item Integration Test 5 (revocation)
+\end{itemize}
+
+This takes approximately 15 minutes and confirms the core access control and command paths still work.

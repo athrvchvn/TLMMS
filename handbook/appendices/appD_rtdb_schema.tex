@@ -1,0 +1,121 @@
+%% Appendix D — RTDB Schema Reference
+\chapter{Realtime Database Schema Reference}
+\label{app:rtdb_schema}
+
+\section{Full RTDB Tree}
+
+\begin{lstlisting}[style=jsonlstyle,caption={Complete RTDB Structure}]
+{
+  "mms": {
+    "nodes": {
+      "1": {
+        "state":            "idle",
+        "roll_number":      null,
+        "session_start":    null,
+        "firmware_version": "2.0.0",
+        "ip_address":       "192.168.0.101",
+        "last_seen":        1718600000,
+        "rssi":             -52
+      },
+      "2": {
+        "state":            "offline",
+        "firmware_version": "2.0.0",
+        "ip_address":       null,
+        "last_seen":        1718500000,
+        "rssi":             null
+      },
+      "3": {
+        "state":            "active",
+        "roll_number":      "220002123",
+        "session_start":    1718600000,
+        "firmware_version": "2.0.0",
+        "ip_address":       "192.168.0.103",
+        "last_seen":        1718600060,
+        "rssi":             -67
+      }
+    },
+    "commands": {
+      "3": {
+        "command":      "stop",
+        "issued_by":    "admin_firebase_uid",
+        "timestamp":    1718600100,
+        "acknowledged": false
+      }
+    },
+    "ota": {
+      "firmware_url":   "https://firebasestorage.googleapis.com/.../firmware/2.1.0.bin",
+      "target_version": "2.1.0",
+      "released_at":    1718600200
+    },
+    "bridge": {
+      "status": {
+        "state": "online",
+        "ts":    1718600000
+      }
+    }
+  }
+}
+\end{lstlisting}
+
+\section{Node State Values}
+
+\begin{table}[H]
+\centering
+\caption{Valid values for \texttt{/mms/nodes/\{id\}/state}}
+\begin{tabular}{L{4cm}L{10cm}}
+\toprule
+\textbf{State} & \textbf{Description} \\
+\midrule
+\texttt{"offline"} & Node is not connected to MQTT. Published by broker's LWT mechanism. \\
+\texttt{"idle"} & Node is online, no card in slot. \\
+\texttt{"card\_present"} & Card detected in slot; RFID read in progress. \\
+\texttt{"active"} & Session in progress; machine powered via relay. \\
+\texttt{"error"} & Node encountered a hardware error and is in error recovery mode. \\
+\texttt{"ota"} & Node is performing an OTA firmware update. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Command Lifecycle}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Admin writes command to \texttt{/mms/commands/\{id\}}: \texttt{\{command: "stop", acknowledged: false\}}
+    \item Bridge forwards command to MQTT
+    \item Node receives, executes (or discards if stale)
+    \item Node publishes session event
+    \item Bridge or node sets \texttt{\{acknowledged: true, ack\_at: now\}}
+    \item Bridge periodic sweep cleans up old acknowledged commands after 10 minutes
+\end{enumerate}
+
+\section{RTDB Security Rules}
+
+\begin{lstlisting}[caption={v2/database.rules.json}]
+{
+  "rules": {
+    "mms": {
+      "nodes": {
+        ".read": "auth != null",
+        ".write": false
+      },
+      "commands": {
+        "$machine_id": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
+      },
+      "ota": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      },
+      "bridge": {
+        ".read": "auth != null",
+        ".write": false
+      }
+    }
+  }
+}
+\end{lstlisting}
+
+\begin{notebox}
+RTDB rules apply only to client-side SDK connections. The bridge.py uses the Firebase Admin SDK, which bypasses all RTDB security rules. This is by design: the bridge must be able to write node states, which clients cannot write directly.
+\end{notebox}

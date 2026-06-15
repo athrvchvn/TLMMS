@@ -1,0 +1,147 @@
+%% Appendix B — MQTT Topic Reference
+\chapter{MQTT Topic Reference}
+\label{app:mqtt_reference}
+
+\section{Topic Naming Convention}
+
+All MMS V2 topics use the prefix \texttt{mms/}. The hierarchy is:
+\begin{verbatim}
+mms/
+  nodes/
+    {machine_id}/
+      status      — node publishes live state
+      event       — node publishes completed session events
+      heartbeat   — node publishes health data
+      command     — bridge publishes commands to node
+      config      — bridge publishes config to node (retained)
+  all/
+    revoked       — bridge publishes revocation list (retained)
+\end{verbatim}
+
+\section{Topic Details}
+
+\subsection{\texttt{mms/nodes/\{id\}/status}}
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item \textbf{Publisher}: ESP32 access node
+    \item \textbf{QoS}: 1
+    \item \textbf{Retained}: Yes
+    \item \textbf{Last Will}: \texttt{\{"state":"offline"\}} (retained; broker publishes on unexpected disconnect)
+\end{itemize}
+
+\begin{lstlisting}[style=jsonlstyle,caption={Status topic payload}]
+{
+  "state":            "active",
+  "roll_number":      "220002123",
+  "session_start":    1718600000,
+  "firmware_version": "2.0.0",
+  "ip_address":       "192.168.0.101",
+  "last_seen":        1718600060,
+  "rssi":             -55
+}
+\end{lstlisting}
+
+Valid \texttt{state} values: \texttt{"offline"}, \texttt{"idle"}, \texttt{"card\_present"}, \texttt{"active"}, \texttt{"error"}, \texttt{"ota"}.
+
+\subsection{\texttt{mms/nodes/\{id\}/event}}
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item \textbf{Publisher}: ESP32 access node
+    \item \textbf{QoS}: 1
+    \item \textbf{Retained}: No
+\end{itemize}
+
+\begin{lstlisting}[style=jsonlstyle,caption={Event topic payload}]
+{
+  "t":  1718600900,
+  "r":  "220002123",
+  "m":  3,
+  "e":  "session_end",
+  "d":  245,
+  "er": "card_removed"
+}
+\end{lstlisting}
+
+Fields: \texttt{t}=end timestamp, \texttt{r}=roll number, \texttt{m}=machine\_id, \texttt{e}=event type, \texttt{d}=duration\_s, \texttt{er}=end\_reason.
+
+\subsection{\texttt{mms/nodes/\{id\}/heartbeat}}
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item \textbf{Publisher}: ESP32 access node (every 10 seconds)
+    \item \textbf{QoS}: 0
+    \item \textbf{Retained}: No
+\end{itemize}
+
+\begin{lstlisting}[style=jsonlstyle,caption={Heartbeat topic payload}]
+{"ts": 1718600060, "heap_free": 218432, "uptime_s": 3600}
+\end{lstlisting}
+
+\subsection{\texttt{mms/nodes/\{id\}/command}}
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item \textbf{Publisher}: RPi bridge (forwards from RTDB)
+    \item \textbf{QoS}: 1
+    \item \textbf{Retained}: No
+\end{itemize}
+
+\begin{lstlisting}[style=jsonlstyle,caption={Command topic payload}]
+{
+  "cmd":       "stop",
+  "issued_by": "admin_uid",
+  "ts":        1718600100,
+  "url":       null,
+  "version":   null
+}
+\end{lstlisting}
+
+Valid \texttt{cmd} values: \texttt{"stop"}, \texttt{"reboot"}, \texttt{"ota"}.
+
+For OTA commands: \texttt{"url"} contains the firmware download URL, \texttt{"version"} contains the target version string.
+
+\subsection{\texttt{mms/nodes/\{id\}/config}}
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item \textbf{Publisher}: RPi bridge (from Firestore \texttt{onSnapshot})
+    \item \textbf{QoS}: 1
+    \item \textbf{Retained}: Yes (nodes receive latest config on connect even if bridge is not running)
+\end{itemize}
+
+\begin{lstlisting}[style=jsonlstyle,caption={Config topic payload}]
+{
+  "name":               "Soldering Station 1",
+  "session_limit_min":  15,
+  "relay_active_high":  true,
+  "machine_active":     true
+}
+\end{lstlisting}
+
+\subsection{\texttt{mms/all/revoked}}
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item \textbf{Publisher}: RPi bridge (from Firestore \texttt{onSnapshot})
+    \item \textbf{QoS}: 1
+    \item \textbf{Retained}: Yes (all nodes receive on connect; no need to re-push)
+\end{itemize}
+
+\begin{lstlisting}[style=jsonlstyle,caption={Revocation list topic payload}]
+{
+  "uids":       ["A1B2C3D4", "E5F60718"],
+  "updated_at": 1718600300
+}
+\end{lstlisting}
+
+\section{Subscribing to Topics for Debugging}
+
+\begin{lstlisting}[style=bashstyle]
+# On the RPi or any machine with mosquitto-clients installed
+
+# Watch all MMS traffic
+mosquitto_sub -h 192.168.0.10 -t "mms/#" -v
+
+# Watch only status from all nodes
+mosquitto_sub -h 192.168.0.10 -t "mms/nodes/+/status" -v
+
+# Watch events from node 3
+mosquitto_sub -h 192.168.0.10 -t "mms/nodes/3/event" -v
+
+# Watch revocation list
+mosquitto_sub -h 192.168.0.10 -t "mms/all/revoked"
+
+# Manually publish a stop command (for testing)
+mosquitto_pub -h 192.168.0.10 -t "mms/nodes/3/command" \
+  -m '{"cmd":"stop","issued_by":"test","ts":1718600100}'
+\end{lstlisting}

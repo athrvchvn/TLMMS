@@ -1,0 +1,106 @@
+%% Chapter 10 — Security Model
+\chapter{Security Model}
+\label{ch:security}
+
+\section{Threat Model}
+
+MMS V2 is deployed in a university lab on a trusted LAN. The threat model assumes:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Insider threat (student)}: A student may attempt to use a machine they are not authorised for. A student may attempt to stay on a machine beyond the session limit.
+    \item \textbf{Card theft or loss}: A student's RFID card may be stolen or lost. The attacker would attempt to use it to gain machine access.
+    \item \textbf{Card forgery}: An attacker may attempt to create a fake RFID card with crafted block data.
+    \item \textbf{Physical access to node}: An attacker may attempt to physically tamper with the ESP32 node.
+    \item \textbf{WiFi LAN attacker}: An attacker on the same WiFi may attempt to inject MQTT messages.
+\end{itemize}
+
+\textbf{Out of scope}: Remote internet attackers (Firebase security rules handle this), state-level adversaries, physical break-ins.
+
+\section{Security Controls}
+
+\subsection{Card Forgery Prevention}
+
+Each card's Sector 1 is protected by a unique 6-byte key derived as:
+\[
+\text{sector\_key}[6] = \text{HMAC-SHA256}(\text{master\_key},\, \text{uid\_hex})[0..5]
+\]
+
+An attacker cannot read Sector 1 data without knowing the master key. An attacker cannot write to Sector 1 without the sector key. Since the sector key is derived from the card's own UID and the master key, creating a forged card with a new UID requires knowledge of the master key.
+
+The MFRC522 \textbf{never returns Key A on a read} --- even with authenticated access. So compromising one card does not reveal the sector key for another card.
+
+\subsection{Revocation}
+
+Lost or stolen cards are revoked via the web app. Revocation propagates to all nodes via MQTT within seconds. Revoked card UIDs are stored in LittleFS on each node, so revocation works even if the MQTT broker goes down (until the next reconnect, nodes use their cached revocation list).
+
+\textbf{Limitation:} A revoked card that is used while a node is offline may be accepted until the node reconnects. This is a known trade-off in favour of offline availability.
+
+\subsection{Admin Web App}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Firebase Authentication protects admin login (email/password)
+    \item Firestore security rules check \texttt{/admins/\{uid\}} and \texttt{/super\_admins/\{uid\}} on every client request
+    \item Sessions collection has \texttt{allow write: if false} --- only the bridge (Admin SDK) can write sessions, preventing session forgery from the client
+    \item Super admin privileges required for OTA and admin management
+\end{itemize}
+
+\subsection{MQTT Security}
+
+In the default deployment, MQTT uses \texttt{allow\_anonymous true}. This is acceptable in a physically secure lab LAN where all connected devices are managed. For hardened deployments:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Enable MQTT password authentication (see Section~\ref{sec:mqtt_auth})
+    \item Add per-node ACLs to restrict which topics each node can publish/subscribe to
+    \item Use TLS on MQTT (port 8883) if the lab network is untrusted
+\end{itemize}
+
+\subsection{Secrets Management}
+
+Sensitive secrets are never committed to version control. The \texttt{.gitignore} covers:
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item \texttt{v2/access\_node/secrets.h} (WiFi credentials, master key)
+    \item \texttt{v2/kiosk\_station/station\_writer/secrets\_station.h} (master key)
+    \item \texttt{v2/kiosk\_station/secrets.py} (master key)
+    \item \texttt{v2/rpi\_bridge/service-account.json} (Firebase Admin SDK key)
+    \item \texttt{v2/web\_app/lab-access-nexus-main/.env} (Firebase client config)
+\end{itemize}
+
+\subsection{Firmware Security}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item OTA firmware is downloaded from Firebase Storage (HTTPS). \texttt{esp\_https\_ota()} validates the TLS certificate.
+    \item The dual-partition OTA scheme with rollback prevents a bad firmware update from permanently bricking a node.
+    \item The 30-second hardware watchdog ensures the node restarts in case of firmware hang, preventing a machine from being left in relay-ON state indefinitely.
+    \item Relay GPIO is driven LOW before \texttt{pinMode(OUTPUT)}, ensuring the relay is OFF during boot regardless of the GPIO's default state.
+\end{itemize}
+
+\section{Security Assumptions and Limitations}
+
+\begin{table}[H]
+\centering
+\caption{Security Assumptions and Limitations}
+\begin{tabular}{L{5cm}L{9cm}}
+\toprule
+\textbf{Assumption / Limitation} & \textbf{Details} \\
+\midrule
+Master key is secure & If the master key is stolen, all cards can be forged. The key must be stored in a password manager, not in plaintext on a shared drive. \\
+Lab WiFi is trusted & MQTT uses no encryption. A packet sniffer on the same WiFi can read MQTT messages (but not master key or Firebase credentials, which are never in MQTT). \\
+Revocation is not instant & Offline nodes cannot revoke cards immediately. A stolen card may work for minutes to hours if the affected node is offline. \\
+Physical node security & An attacker with physical access to the ESP32 can read flash, extract master key. Epoxy potting of the PCB mitigates this. \\
+PIN not verified at machine (V2) & Card tap alone is sufficient. A thief with a stolen card can use any permitted machine. Revocation is the mitigation. \\
+Firebase free tier & Data stored in Google Cloud. Subject to Google's terms of service. For highly sensitive data, consider self-hosted alternatives. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Security Checklist for Future Maintainers}
+
+Before deploying any change, verify:
+\begin{itemize}[leftmargin=1.5em]
+    \item \texttt{secrets.h}, \texttt{secrets.py}, \texttt{secrets\_station.h} are NOT committed to git (\texttt{git status} should not show them)
+    \item Firestore rules still have \texttt{allow write: if false} on the \texttt{sessions} collection
+    \item RTDB rules protect \texttt{nodes} and \texttt{revoked} paths from unauthenticated writes
+    \item New admin accounts are added to Firestore \texttt{/admins} or \texttt{/super\_admins} only --- do not grant access by adding to Firebase Auth alone
+    \item OTA firmware URL uses HTTPS (Firebase Storage URLs always do)
+    \item Master key backup is current and stored securely
+\end{itemize}

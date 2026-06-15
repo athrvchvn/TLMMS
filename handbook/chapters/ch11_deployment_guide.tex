@@ -1,0 +1,120 @@
+%% Chapter 11 — Deployment Guide
+\chapter{Deployment Guide}
+\label{ch:deployment}
+
+\section{Deployment Overview}
+
+A complete MMS V2 deployment follows this order. Each step depends on the previous being complete.
+
+\begin{table}[H]
+\centering
+\caption{Deployment Sequence}
+\begin{tabular}{C{1cm}L{5cm}L{7.5cm}}
+\toprule
+\textbf{Step} & \textbf{Task} & \textbf{Reference} \\
+\midrule
+1  & Generate master key (ONCE) & Chapter~\ref{ch:deployment}, Section~\ref{sec:masterkey} \\
+2  & Set up Firebase project & Deployment Package, Section 08 \\
+3  & Set up Raspberry Pi & Deployment Package, Section 07 \\
+4  & Deploy web application & Deployment Package, Section 09 \\
+5  & Set up kiosk station & Deployment Package, Section 10 \\
+6  & Assemble nodes & Chapter~\ref{ch:hardware}; Deployment Package, Section 05 \\
+7  & Run hardware validation & Appendix~\ref{app:validation}; Deployment Package, Section 06 \\
+8  & Provision nodes & Deployment Package, Section 11 \\
+9  & Run integration tests & Deployment Package, Section 12 \\
+10 & Issue cards to students & Deployment Package, Section 10 \\
+11 & Pilot deployment (1 machine) & Deployment Package, Section 13 \\
+12 & Full rollout (all machines) & Deployment Package, Section 13 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{notebox}
+The full deployment package is in \texttt{v2/deployment/}. This chapter summarises the most critical steps. Refer to the deployment package for step-by-step instructions with exact commands.
+\end{notebox}
+
+\section{Master Key Generation}
+\label{sec:masterkey}
+
+The master key is a 32-byte random secret shared across all nodes and the kiosk. It must be generated exactly once, before any card is issued or any node is provisioned.
+
+\begin{lstlisting}[style=bashstyle]
+python3 -c "
+import secrets
+bs = secrets.token_bytes(32)
+print('C array:')
+print('  ' + ', '.join(f'0x{b:02X}' for b in bs))
+print()
+print('Python hex:')
+print('  ' + bs.hex())
+"
+\end{lstlisting}
+
+Store the output in:
+\begin{itemize}[leftmargin=1.5em]
+    \item A password manager (required)
+    \item A printed copy in a sealed envelope in the lab safe (recommended)
+    \item \textbf{Do not store in a shared Google Drive or any cloud storage in plaintext}
+\end{itemize}
+
+Use the C array form for \texttt{secrets.h} and \texttt{secrets\_station.h}. Use the hex form for \texttt{secrets.py}.
+
+\begin{warnbox}
+\textbf{Losing the master key means all existing cards must be replaced.} The key cannot be recovered from the cards or the firmware. If it is lost, generate a new key, re-flash all nodes, and re-issue all cards.
+\end{warnbox}
+
+\section{Node Provisioning Summary}
+
+For each node:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Copy \texttt{secrets.h.template} to \texttt{secrets.h}; fill in WiFi credentials and master key
+    \item Set \texttt{MACHINE\_ID} and \texttt{MACHINE\_NAME} in \texttt{config.h}
+    \item Flash firmware via Arduino IDE (Partition: Default 4MB with spiffs)
+    \item Verify boot log on Serial Monitor (115200 baud)
+    \item Confirm MQTT connect and config push from bridge
+    \item Test card access: permitted card GRANTED, non-permitted card DENIED
+    \item Complete provisioning checklist (Deployment Package, Section 11)
+\end{enumerate}
+
+\section{Critical Pre-Deployment Verification}
+
+Before any node goes to a live machine, run these checks:
+
+\begin{lstlisting}[style=bashstyle]
+# 1. Bridge healthy
+curl http://192.168.0.10:8080/health
+# Expect: {"mqtt_connected": true, "fb_connected": true, ...}
+
+# 2. Mosquitto reachable
+mosquitto_pub -h 192.168.0.10 -t mms/test -m ping
+# Expect: no error
+
+# 3. Firestore machines seeded
+firebase firestore:get /machines/1
+# Expect: JSON with "Creality 3D Printer"
+
+# 4. Web app accessible
+# Open dashboard URL in browser; login; confirm 5 machines shown
+\end{lstlisting}
+
+\section{Secrets Files Reference}
+
+\begin{table}[H]
+\centering
+\caption{Secret Files and Their Contents}
+\begin{tabular}{L{6cm}L{8cm}}
+\toprule
+\textbf{File path} & \textbf{Contents} \\
+\midrule
+\texttt{v2/access\_node/secrets.h} & WiFi SSID/password, MQTT broker IP, master key (C array) \\
+\texttt{v2/kiosk\_station/station\_writer/secrets\_station.h} & Master key (C array) \\
+\texttt{v2/kiosk\_station/secrets.py} & Master key (Python hex bytes) \\
+\texttt{v2/rpi\_bridge/.env} & MQTT credentials, Firebase RTDB URL \\
+\texttt{v2/rpi\_bridge/service-account.json} & Firebase Admin SDK service account \\
+\texttt{v2/web\_app/lab-access-nexus-main/.env} & Firebase client config (not a secret per se, but not committed) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All of these are in \texttt{.gitignore}. Template files (e.g., \texttt{secrets.h.template}) are committed; actual secret files are not.

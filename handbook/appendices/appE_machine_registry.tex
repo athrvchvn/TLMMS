@@ -1,0 +1,89 @@
+%% Appendix E -- Machine Registry
+\chapter{Machine Registry}
+\label{app:machine_registry}
+
+\section{Canonical Machine Table}
+
+This table is the single source of truth for machine identity. Any discrepancy between this table and the code files is a bug.
+
+\begin{table}[H]
+\centering
+\caption{Canonical Machine Registry}
+\begin{tabular}{C{1.5cm}L{4.5cm}C{2.5cm}C{2.5cm}C{2cm}C{2cm}}
+\toprule
+\textbf{ID} & \textbf{Name} & \textbf{Session Limit} & \textbf{Perm Bit} & \textbf{Zone} & \textbf{Relay Type} \\
+\midrule
+1 & Creality 3D Printer   & 60 min & Bit 0 & Zone A & Mechanical \\
+2 & Fracktal Laser Cutter & 30 min & Bit 1 & Zone B & SSR \\
+3 & Soldering Station 1   & 15 min & Bit 2 & Zone C & Mechanical \\
+4 & Soldering Station 2   & 15 min & Bit 3 & Zone C & Mechanical \\
+5 & Bosche Grinder        & 20 min & Bit 4 & Zone D & Mechanical \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Three-Places-in-Sync Rule}
+
+Machine identity is specified in three code locations that must match exactly:
+
+\subsection{1. \texttt{v2/access\_node/config.h}}
+\begin{lstlisting}[language=C,caption={Machine identity in firmware config}]
+// Canonical machine table (matches Firestore /machines/* documents)
+// ID  Name                      Limit  Bit  Zone
+// 1   Creality 3D Printer       60min  0    Zone A
+// 2   Fracktal Laser Cutter     30min  1    Zone B
+// 3   Soldering Station 1       15min  2    Zone C
+// 4   Soldering Station 2       15min  3    Zone C
+// 5   Bosche Grinder            20min  4    Zone D
+
+#define MACHINE_ID    1
+#define MACHINE_NAME  "Creality 3D Printer"
+#define SESSION_LIMIT 60
+#define MQTT_BROKER   "192.168.0.10"
+\end{lstlisting}
+
+\subsection{2. \texttt{v2/scripts/seed\_machines.py}}
+\begin{lstlisting}[language=Python,caption={Machine seeding script --- source of truth for Firestore}]
+MACHINES = [
+    {"id": "1", "name": "Creality 3D Printer",
+     "session_limit_minutes": 60, "relay_active_high": True,
+     "machine_active": True, "location": "Zone A"},
+    {"id": "2", "name": "Fracktal Laser Cutter",
+     "session_limit_minutes": 30, "relay_active_high": True,
+     "machine_active": True, "location": "Zone B"},
+    {"id": "3", "name": "Soldering Station 1",
+     "session_limit_minutes": 15, "relay_active_high": True,
+     "machine_active": True, "location": "Zone C"},
+    {"id": "4", "name": "Soldering Station 2",
+     "session_limit_minutes": 15, "relay_active_high": True,
+     "machine_active": True, "location": "Zone C"},
+    {"id": "5", "name": "Bosche Grinder",
+     "session_limit_minutes": 20, "relay_active_high": True,
+     "machine_active": True, "location": "Zone D"},
+]
+\end{lstlisting}
+
+\subsection{3. \texttt{v2/kiosk\_station/config.py}}
+\begin{lstlisting}[language=Python,caption={Machine IDs in kiosk permission UI}]
+# Canonical machine table -- must match Firestore /machines/* documents
+MACHINE_IDS = {
+    1: "Creality 3D Printer",
+    2: "Fracktal Laser Cutter",
+    3: "Soldering Station 1",
+    4: "Soldering Station 2",
+    5: "Bosche Grinder",
+}
+\end{lstlisting}
+
+\section{Adding a New Machine}
+
+To add Machine 6 (example: Band Saw):
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Add to the comment table in \texttt{config.h}: \texttt{// 6 Band Saw 25min 5 Zone E}
+    \item Add to \texttt{seed\_machines.py} MACHINES list: \texttt{\{"id": "6", "name": "Band Saw", ...\}}
+    \item Add to \texttt{kiosk\_station/config.py} MACHINE\_IDS: \texttt{6: "Band Saw"}
+    \item Run \texttt{python3 scripts/seed\_machines.py} to create the Firestore document
+    \item Assemble, validate, and provision a new node with \texttt{MACHINE\_ID 6}
+    \item Update user permissions for students who need access to the new machine and re-issue their cards
+\end{enumerate}

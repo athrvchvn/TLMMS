@@ -1,0 +1,497 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\zref@newlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\gdef \LT@i {\LT@entry 
+    {1}{54.67912pt}\LT@entry 
+    {1}{83.13188pt}\LT@entry 
+    {1}{97.35826pt}\LT@entry 
+    {1}{211.16928pt}}
+\@writefile{toc}{\contentsline {chapter}{Revision History}{2}{chapter*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{Abstract}{3}{chapter*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {1}Project Overview}{11}{chapter.1}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:overview}{{1}{11}{Project Overview}{chapter.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.1}What Is MMS V2?}{11}{section.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1.2}Scope and Objectives}{11}{section.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.1}What MMS V2 Does}{11}{subsection.1.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2.2}What MMS V2 Does Not Do}{11}{subsection.1.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1.3}System Scale}{12}{section.1.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1.1}{\ignorespaces MMS V2 System Scale Parameters\relax }}{12}{table.caption.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1.4}Deployed Machines}{12}{section.1.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1.2}{\ignorespaces Canonical Machine Registry\relax }}{12}{table.caption.4}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:machines}{{1.2}{12}{Canonical Machine Registry\relax }{table.caption.4}{}}
+\zref@newlabel{mdf@pagelabel-1}{\default{1.4}\page{12}\abspage{12}\mdf@pagevalue{12}}
+\gdef \LT@ii {\LT@entry 
+    {1}{111.58464pt}\LT@entry 
+    {1}{296.52756pt}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.5}Key Stakeholders}{13}{section.1.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1.6}Glossary}{13}{section.1.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {2}History and V1 Post-Mortem}{15}{chapter.2}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:history}{{2}{15}{History and V1 Post-Mortem}{chapter.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}V1 System Background}{15}{section.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}V1 Failure Analysis}{16}{section.2.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2.1}{\ignorespaces V1 Critical Bugs and Root Causes\relax }}{16}{table.caption.5}\protected@file@percent }
+\newlabel{tab:v1_bugs}{{2.1}{16}{V1 Critical Bugs and Root Causes\relax }{table.caption.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}V1 Deployment Blockers}{16}{section.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.4}V2 Design Decisions Driven by V1 Failures}{17}{section.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.5}Decision Records}{17}{section.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}Local Access Decision (No Cloud Call on Access Path)}{18}{subsection.2.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.2}Card Carries Permissions}{18}{subsection.2.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.3}Per-Card Sector Key Derivation}{18}{subsection.2.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.4}5-Minute Command TTL}{18}{subsection.2.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.5}MQTT Buffer Size 1536 Bytes}{18}{subsection.2.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}System Architecture}{19}{chapter.3}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:architecture}{{3}{19}{System Architecture}{chapter.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}Architecture Overview}{19}{section.3.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3.1}{\ignorespaces MMS V2 System Architecture\relax }}{19}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:architecture}{{3.1}{19}{MMS V2 System Architecture\relax }{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}Communication Paths}{20}{section.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Access Decision (Offline-capable)}{20}{subsection.3.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}Session Event Flow}{20}{subsection.3.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Remote Stop Flow}{20}{subsection.3.2.3}\protected@file@percent }
+\gdef \LT@iii {\LT@entry 
+    {1}{154.26378pt}\LT@entry 
+    {1}{83.13188pt}\LT@entry 
+    {1}{54.67912pt}\LT@entry 
+    {1}{54.67912pt}\LT@entry 
+    {1}{140.0374pt}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.4}Revocation Flow}{21}{subsection.3.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.5}OTA Update Flow}{21}{subsection.3.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.3}MQTT Topic Map}{21}{section.3.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3.1}{\ignorespaces MQTT Topic Reference\relax }}{21}{table.3.1}\protected@file@percent }
+\newlabel{tab:mqtt_topics}{{3.1}{21}{MQTT Topic Reference\relax }{table.3.1}{}}
+\zref@newlabel{mdf@pagelabel-2}{\default{3.3}\page{22}\abspage{22}\mdf@pagevalue{22}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.4}Offline Degradation Table}{22}{section.3.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3.2}{\ignorespaces System Behaviour When Components Are Unavailable\relax }}{22}{table.caption.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Hardware Design}{23}{chapter.4}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:hardware}{{4}{23}{Hardware Design}{chapter.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.1}ESP32 NodeMCU 38-pin}{23}{section.4.1}\protected@file@percent }
+\zref@newlabel{mdf@pagelabel-3}{\default{4.1}\page{23}\abspage{23}\mdf@pagevalue{23}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.2}GPIO Pin Assignments}{24}{section.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces ESP32 GPIO Assignments for MMS V2 Access Node\relax }}{24}{table.caption.8}\protected@file@percent }
+\newlabel{tab:gpio}{{4.1}{24}{ESP32 GPIO Assignments for MMS V2 Access Node\relax }{table.caption.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.3}Component Details}{24}{section.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.1}MFRC522 RFID Reader}{24}{subsection.4.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.2}SSD1306 128$\times $64 SPI OLED (Primary Display)}{25}{subsection.4.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.3}SSD1306 128$\times $32 I2C OLED (Status Strip)}{25}{subsection.4.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.4}HC89 Optical IR Slot Sensor}{25}{subsection.4.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.5}Relay Module (Mechanical or SSR)}{26}{subsection.4.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Mechanical Relay}{26}{subsection.4.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{Solid-State Relay (SSR)}{26}{subsection.4.3.5}\protected@file@percent }
+\zref@newlabel{mdf@pagelabel-4}{\default{4.3.5}\page{26}\abspage{26}\mdf@pagevalue{26}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.6}WS2812B RGB LED}{26}{subsection.4.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.7}EC11 Rotary Encoder}{26}{subsection.4.3.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.8}Power Supply}{27}{subsection.4.3.8}\protected@file@percent }
+\zref@newlabel{mdf@pagelabel-5}{\default{4.3.8}\page{27}\abspage{27}\mdf@pagevalue{27}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.4}Power Budget}{27}{section.4.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4.2}{\ignorespaces Node Power Consumption Estimate\relax }}{27}{table.caption.9}\protected@file@percent }
+\zref@newlabel{mdf@pagelabel-6}{\default{4.4}\page{27}\abspage{27}\mdf@pagevalue{27}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}RFID Card Architecture}{28}{chapter.5}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:rfid}{{5}{28}{RFID Card Architecture}{chapter.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.1}MIFARE Classic 1K Overview}{28}{section.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.2}V2 Card Schema}{28}{section.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.1}Sector 1 Layout}{29}{subsection.5.2.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5.1}{\ignorespaces MMS V2 RFID Card Schema --- Sector 1\relax }}{29}{table.caption.10}\protected@file@percent }
+\newlabel{tab:card_schema}{{5.1}{29}{MMS V2 RFID Card Schema --- Sector 1\relax }{table.caption.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.2}Schema Version Byte}{29}{subsection.5.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.3}Sector Key Derivation}{29}{section.5.3}\protected@file@percent }
+\zref@newlabel{mdf@pagelabel-7}{\default{5.3}\page{30}\abspage{30}\mdf@pagevalue{30}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.4}PIN Hash}{30}{section.5.4}\protected@file@percent }
+\zref@newlabel{mdf@pagelabel-8}{\default{5.4}\page{30}\abspage{30}\mdf@pagevalue{30}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.5}Machine Permission Bitmask}{30}{section.5.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5.2}{\ignorespaces Machine Permission Bitmask Examples\relax }}{30}{table.caption.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.6}Card Write Process}{31}{section.5.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.7}Card Read Process}{31}{section.5.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}Firmware Architecture}{32}{chapter.6}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:firmware}{{6}{32}{Firmware Architecture}{chapter.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.1}Firmware Structure}{32}{section.6.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6.1}{\ignorespaces Firmware Module Map\relax }}{33}{table.caption.12}\protected@file@percent }
+\newlabel{tab:modules}{{6.1}{33}{Firmware Module Map\relax }{table.caption.12}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.2}Firmware State Machine}{34}{section.6.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6.1}{\ignorespaces Access Node Firmware State Machine\relax }}{34}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:state_machine}{{6.1}{34}{Access Node Firmware State Machine\relax }{figure.caption.13}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.3}NVS Configuration}{35}{section.6.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6.2}{\ignorespaces NVS Configuration Keys\relax }}{35}{table.caption.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.4}LittleFS File Layout}{35}{section.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.5}Session Log Entry Format}{36}{section.6.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6.1}Session log entry format}{36}{lstlisting.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.6}Display Content}{36}{section.6.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6.1}Primary OLED (128$\times $64)}{36}{subsection.6.6.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6.3}{\ignorespaces Primary Display Content by State\relax }}{36}{table.caption.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6.2}Status Strip OLED (128$\times $32)}{36}{subsection.6.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.7}WS2812 LED State Map}{37}{section.6.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6.4}{\ignorespaces LED Colour and Pattern per State\relax }}{37}{table.caption.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6.8}Watchdog}{37}{section.6.8}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6.2}Watchdog initialisation in setup()}{37}{lstlisting.6.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6.3}Watchdog feed in main loop}{37}{lstlisting.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {7}Backend Architecture}{38}{chapter.7}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:backend}{{7}{38}{Backend Architecture}{chapter.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.1}Raspberry Pi Role}{38}{section.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7.2}Mosquitto Configuration}{38}{section.7.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7.1}Mosquitto configuration file}{38}{lstlisting.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7.3}bridge.py Architecture}{39}{section.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7.4}Session Event Processing}{39}{section.7.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7.2}Session event handler in bridge.py (simplified)}{39}{lstlisting.7.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7.5}Command Forwarding}{40}{section.7.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7.3}Command forward handler in bridge.py (simplified)}{40}{lstlisting.7.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7.6}Revocation List Management}{41}{section.7.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7.4}Revocation push in bridge.py (simplified)}{41}{lstlisting.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7.7}Systemd Service}{41}{section.7.7}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7.5}/etc/systemd/system/mms-bridge.service}{41}{lstlisting.7.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7.8}Health Check Endpoint}{42}{section.7.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7.9}MQTT Authentication}{42}{section.7.9}\protected@file@percent }
+\newlabel{sec:mqtt_auth}{{7.9}{42}{MQTT Authentication}{section.7.9}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7.6}/etc/mosquitto/acl (per-node topic restrictions)}{42}{lstlisting.7.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {8}Firebase Design}{44}{chapter.8}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:firebase}{{8}{44}{Firebase Design}{chapter.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8.1}Firebase Services Used}{44}{section.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8.2}Why Two Databases?}{44}{section.8.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {8.1}{\ignorespaces Firestore vs RTDB usage in MMS V2\relax }}{44}{table.caption.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8.3}Firestore Schema}{44}{section.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.1}/users/\{roll\_number\}}{44}{subsection.8.3.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8.1}/users/220002123}{45}{lstlisting.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.2}/machines/\{machine\_id\}}{45}{subsection.8.3.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8.2}/machines/3}{45}{lstlisting.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.3}/sessions/\{auto\_id\}}{45}{subsection.8.3.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8.3}/sessions/auto-generated-id}{45}{lstlisting.8.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.4}/revoked/\{card\_uid\}}{46}{subsection.8.3.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8.4}/revoked/A1B2C3D4}{46}{lstlisting.8.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3.5}/admins/\{uid\} and /super\_admins/\{uid\}}{46}{subsection.8.3.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8.5}/admins/firebase-auth-uid}{46}{lstlisting.8.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8.4}RTDB Schema}{46}{section.8.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8.6}Full RTDB structure}{46}{lstlisting.8.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8.5}Firestore Security Rules}{47}{section.8.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8.7}v2/firestore.rules}{47}{lstlisting.8.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8.6}Firestore Indexes}{48}{section.8.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8.8}v2/firestore.indexes.json}{48}{lstlisting.8.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {9}Web Application}{50}{chapter.9}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:webapp}{{9}{50}{Web Application}{chapter.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {9.1}Overview}{50}{section.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9.2}Technology Stack}{50}{section.9.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {9.1}{\ignorespaces Web Application Technology Stack\relax }}{50}{table.caption.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9.3}Authentication Flow}{50}{section.9.3}\protected@file@percent }
+\gdef \LT@iv {\LT@entry 
+    {1}{154.26378pt}\LT@entry 
+    {1}{125.81102pt}\LT@entry 
+    {1}{168.49014pt}}
+\zref@newlabel{mdf@pagelabel-9}{\default{9.3}\page{51}\abspage{51}\mdf@pagevalue{51}}
+\@writefile{toc}{\contentsline {section}{\numberline {9.4}Feature Reference}{51}{section.9.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {9.2}{\ignorespaces Web Application Feature Reference\relax }}{51}{table.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9.5}Critical V1 Bugs Fixed in Web App}{51}{section.9.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.5.1}\texttt  {addDoc} $\rightarrow $ \texttt  {setDoc} for User Creation}{51}{subsection.9.5.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {9.1}User creation fix in src/lib/firebase.ts}{51}{lstlisting.9.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.5.2}PIN Hashing}{52}{subsection.9.5.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {9.2}PIN hashing in src/lib/firebase.ts}{52}{lstlisting.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9.6}Environment Configuration}{52}{section.9.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {9.3}v2/web\_app/lab-access-nexus-main/.env}{52}{lstlisting.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9.7}Build and Deploy}{52}{section.9.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {10}Security Model}{53}{chapter.10}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:security}{{10}{53}{Security Model}{chapter.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {10.1}Threat Model}{53}{section.10.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10.2}Security Controls}{53}{section.10.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2.1}Card Forgery Prevention}{53}{subsection.10.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2.2}Revocation}{54}{subsection.10.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2.3}Admin Web App}{54}{subsection.10.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2.4}MQTT Security}{54}{subsection.10.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2.5}Secrets Management}{54}{subsection.10.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2.6}Firmware Security}{54}{subsection.10.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10.3}Security Assumptions and Limitations}{55}{section.10.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {10.1}{\ignorespaces Security Assumptions and Limitations\relax }}{55}{table.caption.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {10.4}Security Checklist for Future Maintainers}{55}{section.10.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {11}Deployment Guide}{56}{chapter.11}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:deployment}{{11}{56}{Deployment Guide}{chapter.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {11.1}Deployment Overview}{56}{section.11.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {11.1}{\ignorespaces Deployment Sequence\relax }}{56}{table.caption.20}\protected@file@percent }
+\zref@newlabel{mdf@pagelabel-10}{\default{11.1}\page{56}\abspage{56}\mdf@pagevalue{56}}
+\@writefile{toc}{\contentsline {section}{\numberline {11.2}Master Key Generation}{56}{section.11.2}\protected@file@percent }
+\newlabel{sec:masterkey}{{11.2}{56}{Master Key Generation}{section.11.2}{}}
+\zref@newlabel{mdf@pagelabel-11}{\default{11.2}\page{57}\abspage{57}\mdf@pagevalue{57}}
+\@writefile{toc}{\contentsline {section}{\numberline {11.3}Node Provisioning Summary}{57}{section.11.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {11.4}Critical Pre-Deployment Verification}{57}{section.11.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {11.5}Secrets Files Reference}{58}{section.11.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {11.2}{\ignorespaces Secret Files and Their Contents\relax }}{58}{table.caption.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {12}Testing and Validation}{59}{chapter.12}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:testing}{{12}{59}{Testing and Validation}{chapter.12}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {12.1}Validation Strategy}{59}{section.12.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {12.2}Hardware Validation Suite}{59}{section.12.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {12.1}{\ignorespaces Hardware Validation Sketches\relax }}{59}{table.caption.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {12.3}Integration Test Suite}{60}{section.12.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {12.2}{\ignorespaces Integration Test Summary\relax }}{60}{table.caption.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {12.4}Pass/Fail Criteria}{61}{section.12.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {12.3}{\ignorespaces Integration Test Pass Criteria\relax }}{61}{table.caption.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {12.5}Regression Testing After Firmware Updates}{61}{section.12.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {13}Maintenance Procedures}{62}{chapter.13}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:maintenance}{{13}{62}{Maintenance Procedures}{chapter.13}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {13.1}Maintenance Schedule Summary}{62}{section.13.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {13.1}{\ignorespaces Maintenance Schedule\relax }}{62}{table.caption.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {13.2}Firmware Update Procedure}{62}{section.13.2}\protected@file@percent }
+\zref@newlabel{mdf@pagelabel-12}{\default{13.2}\page{63}\abspage{63}\mdf@pagevalue{63}}
+\@writefile{toc}{\contentsline {section}{\numberline {13.3}Card Management}{63}{section.13.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.3.1}Issuing a New Card}{63}{subsection.13.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.3.2}Revoking a Card (Lost/Stolen)}{63}{subsection.13.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {13.4}Bridge Maintenance}{63}{section.13.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {13.5}Database Cleanup}{64}{section.13.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.5.1}Orphaned Sessions}{64}{subsection.13.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.5.2}Stale RTDB Commands}{64}{subsection.13.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {14}Troubleshooting}{65}{chapter.14}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:troubleshooting}{{14}{65}{Troubleshooting}{chapter.14}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {14.1}Quick Diagnostic Reference}{65}{section.14.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {14.1}{\ignorespaces Symptom to First Action\relax }}{65}{table.caption.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {14.2}Serial Monitor Diagnostic Commands}{65}{section.14.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {14.2}{\ignorespaces Diagnostic Log Prefixes\relax }}{66}{table.caption.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {14.3}Common Issues}{66}{section.14.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {14.3.1}RFID Authentication Failure}{66}{subsection.14.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {14.3.2}Schema Version Mismatch}{66}{subsection.14.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {14.3.3}Bridge PERMISSION\_DENIED on Firestore}{66}{subsection.14.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {14.3.4}WiFi RSSI Too Low}{67}{subsection.14.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {14.4}Recovery Procedures}{67}{section.14.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {15}Future Improvements}{68}{chapter.15}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{ch:future}{{15}{68}{Future Improvements}{chapter.15}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {15.1}Planned (Phase 4)}{68}{section.15.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {15.1.1}PIN Verification at Machine}{68}{subsection.15.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {15.2}Recommended (Near-term)}{68}{section.15.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {15.2.1}MQTT Authentication and ACLs}{68}{subsection.15.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {15.2.2}Session Booking / Reservation}{68}{subsection.15.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {15.2.3}Analytics Dashboard}{69}{subsection.15.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {15.2.4}Card Expiry}{69}{subsection.15.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {15.3}Long-term Considerations}{69}{section.15.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {15.3.1}Multi-Lab Deployment}{69}{subsection.15.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {15.3.2}Replacing Firebase with Self-Hosted Backend}{69}{subsection.15.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {15.3.3}Hardware Iterations}{70}{subsection.15.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {15.4}Known Limitations to Address}{70}{section.15.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {15.1}{\ignorespaces Known Limitations and Improvement Path\relax }}{70}{table.caption.28}\protected@file@percent }
+\gdef \LT@v {\LT@entry 
+    {1}{68.9055pt}\LT@entry 
+    {1}{140.0374pt}\LT@entry 
+    {1}{83.13188pt}\LT@entry 
+    {1}{97.35826pt}\LT@entry 
+    {1}{111.58464pt}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {A}GPIO Pin Mappings}{71}{appendix.A}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{app:pin_mappings}{{A}{71}{GPIO Pin Mappings}{appendix.A}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.1}Complete ESP32 GPIO Assignment Table}{71}{section.A.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {A.1}{\ignorespaces Complete GPIO Assignment Table for MMS V2 Access Node\relax }}{72}{table.A.1}\protected@file@percent }
+\newlabel{tab:gpio_full}{{A.1}{72}{Complete GPIO Assignment Table for MMS V2 Access Node\relax }{table.A.1}{}}
+\zref@newlabel{mdf@pagelabel-13}{\default{A.1}\page{72}\abspage{72}\mdf@pagevalue{72}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.2}SPI Bus Sharing}{72}{section.A.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {A.2}{\ignorespaces SPI Bus Signal Assignment\relax }}{72}{table.caption.29}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A.3}I2C Bus}{73}{section.A.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {B}MQTT Topic Reference}{74}{appendix.B}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{app:mqtt_reference}{{B}{74}{MQTT Topic Reference}{appendix.B}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B.1}Topic Naming Convention}{74}{section.B.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B.2}Topic Details}{74}{section.B.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2.1}\texttt  {mms/nodes/\{id\}/status}}{74}{subsection.B.2.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.1}Status topic payload}{74}{lstlisting.B.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2.2}\texttt  {mms/nodes/\{id\}/event}}{75}{subsection.B.2.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.2}Event topic payload}{75}{lstlisting.B.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2.3}\texttt  {mms/nodes/\{id\}/heartbeat}}{75}{subsection.B.2.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.3}Heartbeat topic payload}{75}{lstlisting.B.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2.4}\texttt  {mms/nodes/\{id\}/command}}{75}{subsection.B.2.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.4}Command topic payload}{75}{lstlisting.B.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2.5}\texttt  {mms/nodes/\{id\}/config}}{76}{subsection.B.2.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.5}Config topic payload}{76}{lstlisting.B.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {B.2.6}\texttt  {mms/all/revoked}}{76}{subsection.B.2.6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {B.6}Revocation list topic payload}{76}{lstlisting.B.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {B.3}Subscribing to Topics for Debugging}{76}{section.B.3}\protected@file@percent }
+\gdef \LT@vi {\LT@entry 
+    {1}{125.81102pt}\LT@entry 
+    {1}{83.13188pt}\LT@entry 
+    {1}{239.62204pt}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {C}Firestore Schema Reference}{77}{appendix.C}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{app:firestore_schema}{{C}{77}{Firestore Schema Reference}{appendix.C}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {C.1}Collection Overview}{77}{section.C.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {C.1}{\ignorespaces Firestore Collections\relax }}{77}{table.caption.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {C.2}/users/\{roll\_number\}}{77}{section.C.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {C.2}{\ignorespaces /users collection fields\relax }}{77}{table.C.2}\protected@file@percent }
+\gdef \LT@vii {\LT@entry 
+    {1}{140.0374pt}\LT@entry 
+    {1}{83.13188pt}\LT@entry 
+    {1}{225.39566pt}}
+\gdef \LT@viii {\LT@entry 
+    {1}{111.58464pt}\LT@entry 
+    {1}{83.13188pt}\LT@entry 
+    {1}{253.84842pt}}
+\@writefile{toc}{\contentsline {section}{\numberline {C.3}/machines/\{machine\_id\}}{78}{section.C.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {C.3}{\ignorespaces /machines collection fields\relax }}{78}{table.C.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {C.4}/sessions/\{auto\_id\}}{78}{section.C.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {C.4}{\ignorespaces /sessions collection fields\relax }}{78}{table.C.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {C.5}/revoked/\{card\_uid\}}{78}{section.C.5}\protected@file@percent }
+\gdef \LT@ix {\LT@entry 
+    {1}{97.35826pt}\LT@entry 
+    {1}{83.13188pt}\LT@entry 
+    {1}{268.0748pt}}
+\@writefile{lot}{\contentsline {table}{\numberline {C.5}{\ignorespaces /revoked collection fields\relax }}{79}{table.C.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {C.6}Firestore Composite Indexes}{79}{section.C.6}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {C.6}{\ignorespaces Required Firestore Composite Indexes\relax }}{79}{table.caption.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {D}Realtime Database Schema Reference}{80}{appendix.D}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{app:rtdb_schema}{{D}{80}{Realtime Database Schema Reference}{appendix.D}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D.1}Full RTDB Tree}{80}{section.D.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {D.1}Complete RTDB Structure}{80}{lstlisting.D.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {D.2}Node State Values}{81}{section.D.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {D.1}{\ignorespaces Valid values for \texttt  {/mms/nodes/\{id\}/state}\relax }}{81}{table.caption.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {D.3}Command Lifecycle}{81}{section.D.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {D.4}RTDB Security Rules}{81}{section.D.4}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {D.2}v2/database.rules.json}{82}{lstlisting.D.2}\protected@file@percent }
+\zref@newlabel{mdf@pagelabel-14}{\default{D.4}\page{82}\abspage{82}\mdf@pagevalue{82}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {E}Machine Registry}{83}{appendix.E}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{app:machine_registry}{{E}{83}{Machine Registry}{appendix.E}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {E.1}Canonical Machine Table}{83}{section.E.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {E.1}{\ignorespaces Canonical Machine Registry\relax }}{83}{table.caption.33}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {E.2}Three-Places-in-Sync Rule}{83}{section.E.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {E.2.1}1. \texttt  {v2/access\_node/config.h}}{83}{subsection.E.2.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {E.1}Machine identity in firmware config}{83}{lstlisting.E.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {E.2.2}2. \texttt  {v2/scripts/seed\_machines.py}}{84}{subsection.E.2.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {E.2}Machine seeding script --- source of truth for Firestore}{84}{lstlisting.E.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {E.2.3}3. \texttt  {v2/kiosk\_station/config.py}}{84}{subsection.E.2.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {E.3}Machine IDs in kiosk permission UI}{84}{lstlisting.E.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {E.3}Adding a New Machine}{84}{section.E.3}\protected@file@percent }
+\gdef \LT@x {\LT@entry 
+    {1}{26.22636pt}\LT@entry 
+    {1}{140.0374pt}\LT@entry 
+    {1}{54.67912pt}\LT@entry 
+    {1}{97.35826pt}\LT@entry 
+    {1}{125.81102pt}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {F}Bill of Materials}{86}{appendix.F}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{app:bom}{{F}{86}{Bill of Materials}{appendix.F}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.1}Per-Node Components}{86}{section.F.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {F.1}{\ignorespaces Bill of Materials per Access Node\relax }}{87}{table.F.1}\protected@file@percent }
+\newlabel{tab:bom_node}{{F.1}{87}{Bill of Materials per Access Node\relax }{table.F.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F.2}Infrastructure Components (One-time)}{87}{section.F.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {F.2}{\ignorespaces Infrastructure Bill of Materials\relax }}{87}{table.caption.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {F.3}Kiosk Station Components}{88}{section.F.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {F.3}{\ignorespaces Kiosk Station Bill of Materials\relax }}{88}{table.caption.35}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {F.4}Total Cost Estimate}{88}{section.F.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {F.4}{\ignorespaces Total Deployment Cost Estimate (5 Nodes)\relax }}{88}{table.caption.36}\protected@file@percent }
+\zref@newlabel{mdf@pagelabel-15}{\default{F.4}\page{88}\abspage{88}\mdf@pagevalue{88}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {G}Wiring Diagrams}{89}{appendix.G}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{app:wiring}{{G}{89}{Wiring Diagrams}{appendix.G}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G.1}Full Node Wiring Diagram}{89}{section.G.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.1}{\ignorespaces Full Node Wiring Diagram\relax }}{89}{figure.caption.37}\protected@file@percent }
+\newlabel{fig:wiring_full}{{G.1}{89}{Full Node Wiring Diagram\relax }{figure.caption.37}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G.2}MFRC522 Connection Detail}{90}{section.G.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.2}{\ignorespaces MFRC522 Connection Detail\relax }}{90}{figure.caption.38}\protected@file@percent }
+\newlabel{fig:wiring_rfid}{{G.2}{90}{MFRC522 Connection Detail\relax }{figure.caption.38}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G.3}SSD1306 128x64 SPI OLED Connection}{90}{section.G.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.3}{\ignorespaces SSD1306 128x64 SPI OLED Connection\relax }}{90}{figure.caption.39}\protected@file@percent }
+\newlabel{fig:wiring_oled64}{{G.3}{90}{SSD1306 128x64 SPI OLED Connection\relax }{figure.caption.39}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G.4}SSD1306 128x32 I2C OLED Connection}{90}{section.G.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.4}{\ignorespaces SSD1306 128x32 I2C OLED Connection\relax }}{90}{figure.caption.40}\protected@file@percent }
+\newlabel{fig:wiring_oled32}{{G.4}{90}{SSD1306 128x32 I2C OLED Connection\relax }{figure.caption.40}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G.5}WS2812B LED Connection}{91}{section.G.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.5}{\ignorespaces WS2812B LED Connection\relax }}{91}{figure.caption.41}\protected@file@percent }
+\newlabel{fig:wiring_ws2812}{{G.5}{91}{WS2812B LED Connection\relax }{figure.caption.41}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G.6}HC89 Slot Sensor Connection}{91}{section.G.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.6}{\ignorespaces HC89 Slot Sensor Connection\relax }}{91}{figure.caption.42}\protected@file@percent }
+\newlabel{fig:wiring_hc89}{{G.6}{91}{HC89 Slot Sensor Connection\relax }{figure.caption.42}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G.7}EC11 Rotary Encoder Connection}{92}{section.G.7}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.7}{\ignorespaces EC11 Rotary Encoder Connection\relax }}{92}{figure.caption.43}\protected@file@percent }
+\newlabel{fig:wiring_encoder}{{G.7}{92}{EC11 Rotary Encoder Connection\relax }{figure.caption.43}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G.8}Relay Module Connection}{92}{section.G.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.8}{\ignorespaces Relay Module Connection\relax }}{92}{figure.caption.44}\protected@file@percent }
+\newlabel{fig:wiring_relay}{{G.8}{92}{Relay Module Connection\relax }{figure.caption.44}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G.9}Power Distribution}{93}{section.G.9}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {G.9}{\ignorespaces Power Distribution Diagram\relax }}{93}{figure.caption.45}\protected@file@percent }
+\newlabel{fig:power}{{G.9}{93}{Power Distribution Diagram\relax }{figure.caption.45}{}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {H}OTA Update Procedures}{94}{appendix.H}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{app:ota}{{H}{94}{OTA Update Procedures}{appendix.H}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {H.1}OTA Architecture}{94}{section.H.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {H.2}OTA Update Procedure}{94}{section.H.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {H.2.1}Step 1: Build the Firmware}{94}{subsection.H.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {H.2.2}Step 2: Upload to Firebase Storage}{95}{subsection.H.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {H.2.3}Step 3: Trigger OTA}{95}{subsection.H.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {H.2.4}Step 4: Monitor Progress}{95}{subsection.H.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {H.3}OTA Rollback}{96}{section.H.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {H.4}Manual Flash Recovery}{96}{section.H.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {H.5}OTA Safety Checklist}{96}{section.H.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {I}Card Issuance Procedures}{97}{appendix.I}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{app:card_issuance}{{I}{97}{Card Issuance Procedures}{appendix.I}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {I.1}Overview}{97}{section.I.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {I.2}Required Setup}{97}{section.I.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {I.3}Issuing a New Card}{97}{section.I.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {I.4}Re-issuing a Lost Card}{98}{section.I.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {I.5}Re-issuing a Damaged Card (Not Lost)}{98}{section.I.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {I.6}Updating Machine Permissions}{98}{section.I.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {I.7}Bulk Card Issuance}{98}{section.I.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {I.8}Card Stock Management}{99}{section.I.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {I.9}Troubleshooting Card Issuance}{99}{section.I.9}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I.1}{\ignorespaces Card Issuance Troubleshooting\relax }}{99}{table.caption.46}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {J}Hardware Validation Procedures}{100}{appendix.J}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{app:validation}{{J}{100}{Hardware Validation Procedures}{appendix.J}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {J.1}Overview}{100}{section.J.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {J.2}Required Tools and Setup}{100}{section.J.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {J.1}{\ignorespaces Required Arduino Libraries\relax }}{100}{table.caption.47}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {J.3}Execution Order}{101}{section.J.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {J.2}{\ignorespaces Recommended Test Execution Order\relax }}{101}{table.caption.48}\protected@file@percent }
+\gdef \LT@xi {\LT@entry 
+    {1}{97.35826pt}\LT@entry 
+    {1}{140.0374pt}\LT@entry 
+    {1}{211.16928pt}}
+\@writefile{toc}{\contentsline {section}{\numberline {J.4}Sign-off Sheet}{102}{section.J.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {J.5}Common Failure Modes}{102}{section.J.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {J.3}{\ignorespaces Hardware Validation Common Failures\relax }}{103}{table.J.3}\protected@file@percent }
+\gdef \@abspage@last{103}

@@ -1,0 +1,128 @@
+%% Appendix J — Validation Procedures
+\chapter{Hardware Validation Procedures}
+\label{app:validation}
+
+\section{Overview}
+
+This appendix is the quick-reference version of the hardware validation procedures. For full wiring diagrams, expected serial output, and troubleshooting trees, see \texttt{v2/hardware\_validation/EXECUTION\_PLAN.md}.
+
+\section{Required Tools and Setup}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item Laptop with Arduino IDE 2.x installed
+    \item ESP32 board package: \textit{esp32 by Espressif}, version 3.1.x
+    \item USB cable (data cable, not charge-only)
+    \item Multimeter (DC voltage + continuity)
+    \item All components from the BOM (Appendix~\ref{app:bom})
+\end{itemize}
+
+\textbf{Required libraries} (install via Arduino Library Manager):
+
+\begin{table}[H]
+\centering
+\caption{Required Arduino Libraries}
+\begin{tabular}{L{5cm}C{3cm}}
+\toprule
+\textbf{Library} & \textbf{Version} \\
+\midrule
+Adafruit SSD1306 & 2.5.9 \\
+Adafruit GFX Library & 1.11.9 \\
+MFRC522 & 1.4.11 \\
+Adafruit NeoPixel & 1.12.3 \\
+PubSubClient & 2.8.0 \\
+ArduinoJson & 7.3.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Board settings (same for every sketch):}
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item Board: ESP32 Dev Module
+    \item Partition Scheme: Default 4MB with spiffs
+    \item Upload Speed: 921600
+    \item CPU Frequency: 240MHz
+    \item Serial Monitor: 115200 baud
+\end{itemize}
+
+\section{Execution Order}
+
+\begin{table}[H]
+\centering
+\caption{Recommended Test Execution Order}
+\begin{tabular}{C{1cm}L{2cm}L{5cm}L{4.5cm}C{2cm}}
+\toprule
+\textbf{Order} & \textbf{Test} & \textbf{What to wire} & \textbf{Pass condition} & \textbf{Time} \\
+\midrule
+1 & 01 NVS & Nothing (USB only) & ``PASS'' on all data types & 5 min \\
+2 & 12 LittleFS & Nothing & All 7 phases PASS & 10 min \\
+3 & 10 WiFi & Nothing (built-in antenna) & IP assigned; NTP synced IST & 10 min \\
+4 & 11 MQTT & Nothing (needs RPi) & QoS 0 and QoS 1 PASS & 15 min \\
+5 & 05 I2C OLED & OLED32 only & Text visible on display & 5 min \\
+6 & 04 SPI OLED & OLED64 + OLED32 & Text visible on OLED64 & 5 min \\
+7 & 02 RFID & OLED64 + MFRC522 & Card UID read correctly & 10 min \\
+8 & 03 Relay & Relay only & Multimeter: continuity on NO & 5 min \\
+9 & 06 HC89 & HC89 slot sensor & PRESENT/ABSENT toggle reliably & 5 min \\
+10 & 07 WS2812 & WS2812 LED & R/G/B cycle visible & 5 min \\
+11 & 08 Combined & All displays + LED & All active simultaneously & 10 min \\
+12 & 09 Encoder & Encoder + 2× 10k$\Omega$ & CW/CCW/button all detected & 10 min \\
+13 & 99 Full node & Everything connected & All components PASS & 10 min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Sign-off Sheet}
+
+\begin{center}
+\begin{tabular}{|l|l|c|c|}
+\hline
+\textbf{Test} & \textbf{Sketch} & \textbf{PASS} & \textbf{FAIL} \\
+\hline
+NVS              & 01\_nvs             & $\square$ & $\square$ \\
+LittleFS         & 12\_littlefs        & $\square$ & $\square$ \\
+WiFi             & 10\_wifi            & $\square$ & $\square$ \\
+MQTT             & 11\_mqtt            & $\square$ & $\square$ \\
+I2C OLED 32px    & 05\_oled\_i2c       & $\square$ & $\square$ \\
+SPI OLED 64px    & 04\_oled\_spi       & $\square$ & $\square$ \\
+RFID Reader      & 02\_rfid            & $\square$ & $\square$ \\
+Relay            & 03\_relay           & $\square$ & $\square$ \\
+HC89 Slot Sensor & 06\_hc89            & $\square$ & $\square$ \\
+WS2812 LED       & 07\_ws2812          & $\square$ & $\square$ \\
+Combined Display & 08\_combined\_display & $\square$ & $\square$ \\
+Rotary Encoder   & 09\_rotary\_encoder  & $\square$ & $\square$ \\
+Full Node        & 99\_full\_node       & $\square$ & $\square$ \\
+\hline
+\multicolumn{2}{|l|}{\textbf{Machine ID:}} & \multicolumn{2}{c|}{} \\
+\hline
+\multicolumn{2}{|l|}{\textbf{Date:}} & \multicolumn{2}{c|}{} \\
+\hline
+\multicolumn{2}{|l|}{\textbf{Engineer:}} & \multicolumn{2}{c|}{} \\
+\hline
+\multicolumn{2}{|l|}{\textbf{Sign-off:}} & \multicolumn{2}{c|}{} \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{1em}
+\textbf{Condition for proceeding to provisioning:} All 13 tests must show PASS. Any FAIL must be resolved and re-tested before the node proceeds to node provisioning (Appendix~\ref{app:validation}, deployment package Section 11).
+
+\section{Common Failure Modes}
+
+\begin{longtable}{L{3cm}L{4.5cm}L{7cm}}
+\toprule
+\textbf{Test} & \textbf{Failure} & \textbf{Most likely cause} \\
+\midrule
+\endhead
+NVS & Write fails & Flash issue (erase flash: Tools $\rightarrow$ Erase Flash) \\
+LittleFS & Mount fails & Wrong partition scheme; must be "Default 4MB with spiffs" \\
+WiFi & Connection fails & Wrong SSID/password; 5GHz AP (ESP32 = 2.4GHz only) \\
+MQTT & Connection fails & RPi not running; wrong MQTT\_BROKER IP; firewall \\
+I2C OLED & Init fails & Wrong I2C address (try 0x3D if 0x3C fails); SDA/SCL swapped \\
+SPI OLED & Init fails & CS or DC pin wired wrong; check GPIO 16/17 \\
+RFID & No card read & MFRC522 on 5V (must be 3.3V); RST not wired \\
+Relay & No toggle & GPIO 26 wired to wrong pin; relay\_active\_high polarity \\
+HC89 & Always PRESENT & OUT not wired to GPIO 32; GPIO floating \\
+WS2812 & Wrong colour & Colour order; try NEO\_RGB if NEO\_GRB gives wrong colours \\
+Encoder & No rotation detect & Missing 10k$\Omega$ pull-up on CLK/DT (GPIO 34/35 have none) \\
+\bottomrule
+\caption{Hardware Validation Common Failures}
+\end{longtable}

@@ -1,0 +1,127 @@
+%% Chapter 9 — Web Application
+\chapter{Web Application}
+\label{ch:webapp}
+
+\section{Overview}
+
+The web application is the administrator interface for MMS V2. It is a single-page application (SPA) built with React and TypeScript, using the Firebase SDK for Firestore and RTDB connectivity. It is deployed to Firebase Hosting (a global CDN).
+
+\textbf{Repository path}: \texttt{v2/web\_app/lab-access-nexus-main/}
+
+\section{Technology Stack}
+
+\begin{table}[H]
+\centering
+\caption{Web Application Technology Stack}
+\begin{tabular}{L{4cm}L{5cm}L{5.5cm}}
+\toprule
+\textbf{Layer} & \textbf{Technology} & \textbf{Purpose} \\
+\midrule
+Framework & React 18 + TypeScript & UI rendering and type safety \\
+Build tool & Vite & Development server and production bundler \\
+Styling & Tailwind CSS & Utility-first CSS \\
+UI components & shadcn/ui & Pre-built accessible components \\
+Backend & Firebase SDK v10 & Firestore + RTDB + Auth client \\
+Routing & React Router v6 & Client-side navigation \\
+State & React Context & Global auth and machine state \\
+Hosting & Firebase Hosting & CDN-served static files \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Authentication Flow}
+
+MMS V2 uses Firebase Authentication with email/password. After login:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Firebase Auth confirms credentials
+    \item Web app checks \texttt{/admins/\{uid\}} in Firestore
+    \item If document exists: user is an admin
+    \item Web app checks \texttt{/super\_admins/\{uid\}} in Firestore
+    \item If document exists: user has super admin privileges
+    \item If neither document exists: user is logged in to Firebase but not an MMS admin --- redirect to login with error
+\end{enumerate}
+
+\begin{notebox}
+The presence check in \texttt{/admins} and \texttt{/super\_admins} is the authorisation gate. Firebase Auth alone is not sufficient --- a user with a Firebase Auth account but no Firestore admin document cannot access the admin dashboard.
+\end{notebox}
+
+\section{Feature Reference}
+
+\begin{longtable}{L{5cm}L{4cm}L{5.5cm}}
+\toprule
+\textbf{Feature} & \textbf{Requires role} & \textbf{Implementation} \\
+\midrule
+\endhead
+Real-time machine status & Admin & RTDB \texttt{onValue} on \texttt{/mms/nodes/*} \\
+Session log view & Admin & Firestore query on \texttt{/sessions} \\
+User management (add/edit) & Admin & \texttt{setDoc} to \texttt{/users/\{roll\}} \\
+Machine management & Admin & \texttt{updateDoc} on \texttt{/machines/\{id\}} \\
+Remote stop session & Admin & Write to RTDB \texttt{/mms/commands/\{id\}} \\
+Machine enable/disable & Admin & Update \texttt{machine\_active} in Firestore \\
+Card revocation & Admin & Create \texttt{/revoked/\{uid\}} document \\
+OTA firmware update & Super Admin & Write to RTDB \texttt{/mms/ota} \\
+Add/manage admins & Super Admin & Create \texttt{/admins/\{uid\}} document \\
+\bottomrule
+\caption{Web Application Feature Reference}
+\end{longtable}
+
+\section{Critical V1 Bugs Fixed in Web App}
+
+\subsection{\texttt{addDoc} $\rightarrow$ \texttt{setDoc} for User Creation}
+
+V1 used \texttt{addDoc(collection(db, "users"), data)}, which creates documents with auto-generated IDs. This makes roll-number lookup impossible (requires full collection scan).
+
+V2 uses:
+\begin{lstlisting}[language={[Sharp]C},caption={User creation fix in src/lib/firebase.ts}]
+// V1 (wrong): auto-generated ID
+await addDoc(collection(db, "users"), userData);
+
+// V2 (correct): roll number as document ID
+await setDoc(doc(db, "users", rollNumber), userData);
+\end{lstlisting}
+
+\subsection{PIN Hashing}
+
+V1 stored the PIN in plaintext. V2 hashes the PIN before storing:
+
+\begin{lstlisting}[language={[Sharp]C},caption={PIN hashing in src/lib/firebase.ts}]
+export async function hashPin(pin: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(pin);
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(hash))
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("")
+        .substring(0, 16); // 8 bytes = 16 hex chars
+}
+\end{lstlisting}
+
+The full HMAC-SHA256 with master key and UID is computed by the kiosk during card write. The web app stores a simplified PIN hash used for kiosk login verification only.
+
+\section{Environment Configuration}
+
+All Firebase configuration is in the \texttt{.env} file (never committed to git):
+
+\begin{lstlisting}[caption={v2/web\_app/lab-access-nexus-main/.env}]
+VITE_FIREBASE_API_KEY=AIzaSy...
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=1:123456789:web:abc123
+VITE_FIREBASE_DATABASE_URL=https://your-project-default-rtdb.region.firebasedatabase.app
+\end{lstlisting}
+
+All variables prefixed with \texttt{VITE\_} are bundled into the production build by Vite and accessible in the browser. This is intentional --- these are client-side Firebase config values, not secrets. Firebase security rules enforce authorisation.
+
+\section{Build and Deploy}
+
+\begin{lstlisting}[style=bashstyle]
+cd v2/web_app/lab-access-nexus-main
+npm install
+npm run build          # outputs to dist/
+firebase deploy --only hosting
+\end{lstlisting}
+
+The deployment URL is shown at the end of \texttt{firebase deploy}. Share this URL with lab admins.

@@ -1,0 +1,72 @@
+%% Appendix A — GPIO Pin Mappings
+\chapter{GPIO Pin Mappings}
+\label{app:pin_mappings}
+
+\section{Complete ESP32 GPIO Assignment Table}
+
+\begin{longtable}{C{2cm}L{4.5cm}C{2.5cm}L{3cm}L{3.5cm}}
+\toprule
+\textbf{GPIO} & \textbf{Signal} & \textbf{Direction} & \textbf{Pull-up} & \textbf{Notes} \\
+\midrule
+\endhead
+0   & Boot mode          & IN  & EXT        & Must be HIGH on boot (do not connect to GND) \\
+2   & Onboard LED        & OUT & None       & WiFi status indicator; also used for boot mode \\
+4   & OLED64 RST         & OUT & None       & Active LOW reset; pulled HIGH by firmware after boot \\
+5   & MFRC522 SS (SDA)   & OUT & None       & SPI chip select for RFID reader \\
+6--11 & Flash memory     & ---  & ---       & Connected to internal flash; DO NOT USE \\
+12  & Boot voltage select & IN  & ---       & HIGH selects 1.8V flash voltage; LOW selects 3.3V; leave floating \\
+13  & Available          & --- & ---       & Not used in V2 \\
+14  & Available          & --- & ---       & Not used in V2 \\
+15  & Available          & --- & ---       & Not used in V2 \\
+16  & OLED64 CS          & OUT & None       & SPI chip select for primary OLED \\
+17  & OLED64 DC          & OUT & None       & Data/Command select for primary OLED \\
+18  & SPI SCK            & OUT & None       & Shared SPI clock: RFID + OLED64 \\
+19  & SPI MISO           & IN  & None       & Shared SPI MISO: RFID only (OLED is write-only) \\
+21  & OLED32 SDA         & BIDIR & Module 4.7k$\Omega$ & I2C data for secondary OLED \\
+22  & OLED32 SCL         & OUT & Module 4.7k$\Omega$ & I2C clock for secondary OLED \\
+23  & SPI MOSI           & OUT & None       & Shared SPI MOSI: RFID + OLED64 \\
+25  & Encoder SW         & IN  & INPUT\_PULLUP & Rotary encoder push button \\
+26  & Relay IN           & OUT & None       & Machine relay control; LOW before pinMode \\
+27  & MFRC522 RST        & OUT & None       & RFID module reset (active LOW) \\
+32  & HC89 OUT           & IN  & INPUT\_PULLUP & Card slot sensor; LOW = card present \\
+33  & WS2812 DIN         & OUT & None       & RGB LED data; via 470$\Omega$ series resistor \\
+34  & Encoder CLK        & IN  & EXT 10k$\Omega$ to 3V3 & Input-only pin; NO internal pull-up \\
+35  & Encoder DT         & IN  & EXT 10k$\Omega$ to 3V3 & Input-only pin; NO internal pull-up \\
+36  & Available (input-only) & IN & EXT & Not used in V2 \\
+39  & Available (input-only) & IN & EXT & Not used in V2 \\
+\bottomrule
+\caption{Complete GPIO Assignment Table for MMS V2 Access Node}
+\label{tab:gpio_full}
+\end{longtable}
+
+\begin{notebox}
+\textbf{Input-only GPIOs:} Pins 34, 35, 36, and 39 are input-only on the ESP32. They cannot be configured as outputs and have no internal pull-up or pull-down resistors. Always provide external pull-up resistors (10k$\Omega$ to 3.3V) when using these pins with open-drain devices or floating signals.
+\end{notebox}
+
+\section{SPI Bus Sharing}
+
+Both the MFRC522 and the SSD1306 SPI OLED share the same SPI bus:
+
+\begin{table}[H]
+\centering
+\caption{SPI Bus Signal Assignment}
+\begin{tabular}{L{3cm}C{2cm}C{3cm}C{3cm}}
+\toprule
+\textbf{Signal} & \textbf{GPIO} & \textbf{MFRC522} & \textbf{SSD1306 OLED64} \\
+\midrule
+SCK  & 18 & SCK  & D0 \\
+MOSI & 23 & MOSI & D1 \\
+MISO & 19 & MISO & (not connected) \\
+CS   & 5  & SDA  & --- \\
+CS   & 16 & ---  & CS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The SPI arbitration is handled by driving only one CS/SS pin LOW at a time. When communicating with the RFID reader, GPIO 5 is LOW and GPIO 16 is HIGH. When communicating with the OLED, GPIO 16 is LOW. The Arduino SPI library handles this transparently when each device is initialised with its respective SS pin.
+
+\section{I2C Bus}
+
+The I2C bus (GPIO 21 SDA, GPIO 22 SCL) is used only for the 128$\times$32 OLED. The SSD1306 module has onboard 4.7k$\Omega$ pull-up resistors to 3.3V on both lines. No external pull-ups are needed.
+
+I2C address: \textbf{0x3C} (default for most SSD1306 128$\times$32 modules). If you have a different module variant, scan with \texttt{i2cdetect} in a test sketch to confirm.
