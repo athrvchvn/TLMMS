@@ -1,0 +1,111 @@
+%% Chapter 10A — Engineering Review
+\chapter{Engineering Review}
+\label{ch:engineering_review}
+
+This chapter records the design reasoning behind MMS V2. Future maintainers should update it whenever a design decision changes in production.
+
+\section{Architecture Decision Records}
+
+\begin{longtable}{L{2cm}L{4cm}L{4.5cm}L{4.5cm}}
+\toprule
+\textbf{ADR} & \textbf{Decision} & \textbf{Reason} & \textbf{Tradeoff} \\
+\midrule
+\endhead
+ADR-001 & One ESP32 node per machine & Failure of one machine controller does not stop the lab. Wiring stays local. & More devices to provision and monitor. \\
+ADR-002 & Local access decisions & Machines remain usable during WiFi, bridge, or Firebase outages. & Revocation cannot reach an offline node until reconnect. \\
+ADR-003 & Raspberry Pi bridge & Keeps Firebase credentials off ESP32 nodes and gives one controlled integration point. & RPi is an operational dependency for logging and remote commands. \\
+ADR-004 & MQTT on lab LAN & Lightweight, reliable pub/sub for constrained nodes. & Default deployment must be hardened if the LAN is not trusted. \\
+ADR-005 & Firestore for history, RTDB for live state & Firestore fits session records; RTDB fits command/state fan-out. & Maintainers must understand two Firebase databases. \\
+ADR-006 & MIFARE Classic retained for V2 & Low cost, available stock, compatible with MFRC522 hardware. & Crypto-1 is weak; DESFire migration is a planned security upgrade. \\
+ADR-007 & LittleFS offline buffer & Prevents session loss during bridge outages. & Storage is finite and old logs rotate after sustained outages. \\
+\bottomrule
+\caption{Architecture Decision Record summary}
+\label{tab:adr_summary}
+\end{longtable}
+
+\section{Design Tradeoffs}
+
+\begin{riskbox}{Availability vs. Immediate Revocation}
+MMS V2 deliberately favours continued machine access over strict cloud dependency. This is appropriate for a lab where short network outages should not stop authorised work. The accepted risk is that a newly revoked card may work briefly on an offline node using its cached revocation list.
+\end{riskbox}
+
+\begin{riskbox}{Cost vs. Cryptographic Strength}
+MIFARE Classic cards and MFRC522 readers make the system inexpensive and easy to reproduce, but their Crypto-1 security is not modern. The design therefore treats card data as access-control material, not as high-assurance identity proof, and requires a DESFire migration for stronger deployments.
+\end{riskbox}
+
+\section{Scalability Analysis}
+
+\begin{table}[H]
+\centering
+\caption{Scalability envelope}
+\begin{tabular}{L{4cm}L{5cm}L{5cm}}
+\toprule
+\textbf{Dimension} & \textbf{Current design point} & \textbf{Expected headroom} \\
+\midrule
+Machines & 5 initial machines; architecture targets 10--15 & MQTT and Firebase can handle this comfortably. Coordinator workload becomes the limiting factor. \\
+Cards/users & Hundreds of users & Card issuance is manual; batch onboarding needs a staffed kiosk session. \\
+Sessions & Hundreds per day & Firestore writes remain within typical free-tier limits at lab scale. \\
+Offline duration & Hours to days depending on usage & LittleFS rotates at 50KB; bridge recovery should be same day. \\
+OTA rollout & One binary to all nodes & Staged rollout should be added before expanding beyond one lab. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Monitoring Strategy}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=9mm and 13mm]
+\node[mmsedge] (node) {ESP32 nodes\\heartbeat/status};
+\node[mmsblock, right=of node] (mqtt) {Mosquitto\\retained LWT};
+\node[mmsblock, right=of mqtt] (bridge) {bridge.py\\health endpoint};
+\node[mmscloud, right=of bridge] (firebase) {Firebase\\RTDB + Firestore};
+\node[mmsblock, below=of bridge] (coord) {Coordinator\\dashboard check};
+\draw[mmsline] (node) -- node[above,font=\scriptsize]{MQTT} (mqtt);
+\draw[mmsline] (mqtt) -- (bridge);
+\draw[mmsline] (bridge) -- (firebase);
+\draw[mmsline] (firebase) |- (coord);
+\draw[mmsdash] (coord) -| node[pos=0.25,below,font=\scriptsize]{investigate} (mqtt);
+\end{tikzpicture}
+\caption{Monitoring chain and human response loop}
+\label{fig:monitoring_chain}
+\end{figure}
+
+\begin{longtable}{L{3.5cm}L{4.5cm}L{3cm}L{3.5cm}}
+\toprule
+\textbf{Signal} & \textbf{Source} & \textbf{Normal value} & \textbf{Response} \\
+\midrule
+\endhead
+Node status & RTDB \texttt{/mms/nodes/\{id\}} & \texttt{idle} or \texttt{active} with recent \texttt{last\_seen} & Check node power, WiFi, and MQTT. \\
+Bridge health & \texttt{:8080/health} & HTTP 200 with MQTT/Firebase connected & Restart \texttt{mms-bridge}; inspect journal. \\
+MQTT LWT & \texttt{mms/nodes/\{id\}/status} & Not \texttt{offline} for active machines & Inspect router and node serial logs. \\
+Firestore writes & \texttt{/sessions} collection & New sessions after machine use & Check bridge event logs and Firestore rules. \\
+OTA version & RTDB firmware field & Matches released target & Roll back or manually flash failed nodes. \\
+\bottomrule
+\caption{Operational monitoring signals}
+\label{tab:monitoring_signals}
+\end{longtable}
+
+\section{Failure Mode and Effects Analysis}
+
+\begin{longtable}{L{3cm}L{3.8cm}C{1.2cm}C{1.2cm}C{1.2cm}L{4.3cm}}
+\toprule
+\textbf{Failure mode} & \textbf{Effect} & \textbf{S} & \textbf{O} & \textbf{D} & \textbf{Mitigation} \\
+\midrule
+\endhead
+Relay stuck ON & Machine may remain powered after session & 10 & 2 & 4 & Use normally-open wiring, wall switch cutoff, relay test during maintenance. \\
+Wrong machine ID flashed & Permission bit checked against wrong machine & 8 & 3 & 5 & Canonical ID table in firmware, kiosk, and Firestore; verify during commissioning. \\
+RPi bridge down & No remote stop, no live logging & 5 & 4 & 2 & Nodes operate offline; systemd restart; SD card backup. \\
+Firebase outage & Dashboard stale; delayed writes & 4 & 3 & 3 & Local access continues; bridge retry; inspect after recovery. \\
+Master key leak & Cards can be forged & 9 & 2 & 7 & Store key in password manager; rotate and reissue all cards if compromised. \\
+Revocation missed while offline & Lost card may work briefly & 7 & 3 & 6 & Keep nodes online; verify revocation cache after reconnect. \\
+RFID reader failure & Machine cannot start via MMS & 6 & 3 & 2 & Keep spare MFRC522 modules; validation sketch available. \\
+OTA bad image & Nodes crash or roll back & 7 & 3 & 3 & Bench test, dual partitions, rollback, archived known-good binary. \\
+\bottomrule
+\caption{FMEA summary. Severity, occurrence, and detection are rated 1 low to 10 high.}
+\label{tab:fmea}
+\end{longtable}
+
+\section{Security Review Summary}
+
+The deployed system should be reviewed as an access-control aid for a supervised laboratory, not as a bank-grade identity system. The strongest protections are local permission checks, per-card derived sector keys, revocation caches, dashboard role checks, and keeping Firebase Admin credentials on the Raspberry Pi only. The weakest long-term dependency is MIFARE Classic Crypto-1; migration to DESFire is the recommended next security milestone.

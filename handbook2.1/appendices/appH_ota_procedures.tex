@@ -1,0 +1,139 @@
+%% Appendix H — OTA Procedures
+\chapter{OTA Update Procedures}
+\label{app:ota}
+
+\section{OTA Architecture}
+
+MMS V2 uses the ESP-IDF \texttt{esp\_https\_ota()} function for firmware updates. The dual-partition scheme allows automatic rollback if the new firmware is unstable.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\matrix[matrix of nodes,
+    nodes={draw=mmsdark!70, minimum width=58mm, minimum height=7mm, anchor=center, font=\small},
+    row sep=-\pgflinewidth] (flash) {
+Bootloader \hfill 4KB\\
+Partition table \hfill 3KB\\
+NVS \hfill 24KB\\
+OTA data \hfill 8KB\\
+app0 firmware slot \hfill 1MB\\
+app1 firmware slot \hfill 1MB\\
+LittleFS logs/config \hfill 2MB\\
+};
+\node[right=8mm of flash-3-1, font=\scriptsize, align=left] {config survives OTA};
+\node[right=8mm of flash-4-1, font=\scriptsize, align=left] {tracks active partition};
+\node[right=8mm of flash-5-1, font=\scriptsize, align=left] {currently booted slot};
+\node[right=8mm of flash-6-1, font=\scriptsize, align=left] {OTA writes alternate slot};
+\node[right=8mm of flash-7-1, font=\scriptsize, align=left] {offline sessions and revocations};
+\end{tikzpicture}
+\caption{ESP32 4MB flash layout for OTA}
+\label{fig:ota_flash_layout}
+\end{figure}
+
+\section{OTA Update Procedure}
+
+\subsection{Step 1: Build the Firmware}
+
+In Arduino IDE:
+\begin{enumerate}[leftmargin=1.5em]
+    \item Open \texttt{v2/access\_node/access\_node.ino}
+    \item Update version: in \texttt{config.h}, change \texttt{\#define FW\_VERSION "2.0.0"} to the new version
+    \item Verify compile: Sketch $\rightarrow$ Verify/Compile (Ctrl+R)
+    \item Export binary: Sketch $\rightarrow$ Export Compiled Binary
+    \item The \texttt{.bin} file appears in the sketch directory
+\end{enumerate}
+
+\subsection{Step 2: Upload to Firebase Storage}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Firebase Console $\rightarrow$ Storage $\rightarrow$ \texttt{firmware/} folder
+    \item Click Upload File, select the \texttt{.bin} file
+    \item Name it by version: \texttt{2.1.0.bin}
+    \item After upload: click the file $\rightarrow$ three-dot menu $\rightarrow$ Copy download URL
+    \item The URL is a long HTTPS URL; copy it exactly
+\end{enumerate}
+
+\subsection{Step 3: Trigger OTA}
+
+Option A — Via web app:
+\begin{itemize}[leftmargin=1.5em]
+    \item Super Admin Panel $\rightarrow$ OTA Update $\rightarrow$ Paste URL and version $\rightarrow$ Submit
+\end{itemize}
+
+Option B — Via Firebase Console (RTDB):
+\begin{enumerate}[leftmargin=1.5em]
+    \item Open RTDB $\rightarrow$ navigate to \texttt{/mms/ota}
+    \item Set the value to:
+\begin{lstlisting}[style=jsonlstyle]
+{
+  "firmware_url":   "https://firebasestorage.googleapis.com/.../2.1.0.bin",
+  "target_version": "2.1.0",
+  "released_at":    1718600000
+}
+\end{lstlisting}
+\end{enumerate}
+
+Option C — Via Firebase CLI:
+\begin{lstlisting}[style=bashstyle]
+firebase database:update /mms/ota --data '{
+  "firmware_url":   "https://...",
+  "target_version": "2.1.0",
+  "released_at":    1718600000
+}'
+\end{lstlisting}
+
+\subsection{Step 4: Monitor Progress}
+
+On the dashboard: each node card shows ``updating...'' during OTA and reverts to ``idle'' with the new version number on success.
+
+On Serial Monitor (if USB connected):
+\begin{verbatim}
+[OTA] Received OTA command: v2.0.0 -> v2.1.0
+[OTA] URL: https://firebasestorage.googleapis.com/...
+[RELAY] OFF (safety before OTA)
+[OTA] Starting download...
+[OTA] Progress: 10%
+[OTA] Progress: 25%
+...
+[OTA] Progress: 100%
+[OTA] Verification OK
+[OTA] Rebooting to new firmware...
+--- REBOOT ---
+MMS V2 Access Node
+FW: 2.1.0
+...
+[NVS] fw_version updated: 2.1.0
+[MQTT] Published status: {fw_version: "2.1.0", ...}
+\end{verbatim}
+
+\section{OTA Rollback}
+
+The firmware includes automatic rollback:
+\begin{itemize}[leftmargin=1.5em]
+    \item If the new firmware crashes 3 times on boot, the bootloader reverts to the previous partition
+    \item The node reports the old firmware version on reconnect
+    \item Manual rollback is not possible via OTA; re-trigger OTA with the previous known-good \texttt{.bin} file
+\end{itemize}
+
+\section{Manual Flash Recovery}
+
+If OTA fails catastrophically (rollback also fails):
+\begin{enumerate}[leftmargin=1.5em]
+    \item Connect USB cable from laptop to ESP32
+    \item Open Arduino IDE with the last known-good sketch
+    \item Upload via USB (\textit{not} OTA)
+    \item After successful upload: node boots from the new firmware on app0 partition
+    \item Re-run integration tests before returning node to service
+\end{enumerate}
+
+\section{OTA Safety Checklist}
+
+Before triggering OTA on production nodes:
+\begin{itemize}[leftmargin=1.5em]
+    \item[ ] New firmware tested on bench node (direct USB flash, then integration tests 1--8)
+    \item[ ] OTA tested on one bench node before pushing to all production nodes
+    \item[ ] Last known-good \texttt{.bin} file archived locally
+    \item[ ] Relay turns OFF before OTA starts (safety: machines don't stay powered during update)
+    \item[ ] RTDB OTA \texttt{released\_at} timestamp is current Unix time (not a stale value)
+    \item[ ] All nodes showing ``idle'' before OTA (no active sessions)
+\end{itemize}

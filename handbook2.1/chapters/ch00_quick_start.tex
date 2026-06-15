@@ -1,0 +1,96 @@
+%% Chapter 0 — Quick Start
+\chapter{Quick Start for Coordinators}
+\label{ch:quick_start}
+
+This chapter is the operating desk reference. It assumes MMS V2 has already been deployed and the coordinator has web dashboard access, the kiosk station, and blank MIFARE Classic 1K cards.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=10mm]
+\node[mmsblock] (add) {Add user in dashboard};
+\node[mmsblock, right=of add] (issue) {Issue card at kiosk};
+\node[mmsblock, right=of issue] (verify) {Verify on target machine};
+\node[mmsblock, below=of issue] (monitor) {Monitor dashboard};
+\node[mmswarn, right=of monitor] (revoke) {Revoke if lost};
+\draw[mmsline] (add) -- (issue);
+\draw[mmsline] (issue) -- (verify);
+\draw[mmsline] (verify) |- (monitor);
+\draw[mmsline] (monitor) -- (revoke);
+\draw[mmsdash] (revoke) -| (issue);
+\end{tikzpicture}
+\caption{Coordinator workflow from onboarding to replacement}
+\label{fig:coordinator_workflow}
+\end{figure}
+
+\section{Coordinator Checklist}
+
+\begin{runbookbox}{First 15 Minutes}
+\begin{enumerate}[leftmargin=1.5em]
+    \item Open the web dashboard and confirm all production machines are visible.
+    \item Confirm Raspberry Pi bridge health at \texttt{http://192.168.0.10:8080/health}.
+    \item Verify blank card stock and keep at least 20 spare cards.
+    \item Issue one test card to a coordinator account and run a short session.
+    \item Record any machine that is offline before onboarding students.
+\end{enumerate}
+\end{runbookbox}
+
+\section{Add a User}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Dashboard $\rightarrow$ User Management $\rightarrow$ Add User.
+    \item Enter roll number, name, email, and permitted machine list.
+    \item Save and confirm the user document appears in Firestore \texttt{/users/\{roll\}}.
+    \item Do not issue a card until the permission mask shown in the kiosk matches the intended machines.
+\end{enumerate}
+
+\section{Issue and Verify a Card}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Start the kiosk station with \texttt{python3 app.py}.
+    \item Select the user, review machine permissions, and click \texttt{Issue Card}.
+    \item Place a blank card on the writer and wait for \texttt{WRITE\_SUCCESS}.
+    \item Take the card to one permitted machine and one non-permitted machine.
+    \item Confirm permitted access starts a session and non-permitted access is denied.
+\end{enumerate}
+
+\section{Revoke a Lost Card}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Dashboard $\rightarrow$ User Management $\rightarrow$ select user $\rightarrow$ Revoke Card.
+    \item Confirm a document is created under Firestore \texttt{/revoked/\{uid\}}.
+    \item Wait 5 seconds for online nodes to receive the retained MQTT revocation list.
+    \item Try the old card on one node if available; it must be denied.
+    \item Issue a replacement card using a new blank card.
+\end{enumerate}
+
+\section{Perform an OTA Update}
+
+\begin{runbookbox}{Release Gate}
+Never push an OTA image to all machines first. Test the binary on one bench node, verify relay-off boot behaviour, complete one normal session, and only then publish the production OTA command.
+\end{runbookbox}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Increment \texttt{FW\_VERSION} in \texttt{v2/access\_node/config.h}.
+    \item Export the compiled binary from Arduino IDE.
+    \item Upload the binary to Firebase Storage under \texttt{firmware/<version>.bin}.
+    \item Super Admin Panel $\rightarrow$ OTA Update $\rightarrow$ paste URL and target version.
+    \item Monitor each node until it returns to \texttt{idle} with the new firmware version.
+\end{enumerate}
+
+\section{Escalation Rules}
+
+\begin{table}[H]
+\centering
+\caption{Coordinator escalation matrix}
+\begin{tabular}{L{4cm}L{5.5cm}L{4.5cm}}
+\toprule
+\textbf{Condition} & \textbf{Immediate action} & \textbf{Escalate to} \\
+\midrule
+One node offline & Check local power and WiFi; leave other machines running & Technical maintainer \\
+All nodes offline & Check Raspberry Pi and router & Infrastructure maintainer \\
+Card works on wrong machine & Disable affected user and inspect machine ID mapping & Firmware maintainer \\
+Relay stuck on & Cut machine power at wall switch; do not use remote stop as the only control & Safety reviewer \\
+Master key suspected leaked & Stop card issuance and begin key rotation runbook & Faculty in charge \\
+\bottomrule
+\end{tabular}
+\end{table}

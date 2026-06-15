@@ -1,0 +1,104 @@
+%% Chapter 13 — Maintenance Procedures
+\chapter{Maintenance Procedures}
+\label{ch:maintenance}
+
+\section{Maintenance Schedule Summary}
+
+\begin{table}[H]
+\centering
+\caption{Maintenance Schedule}
+\begin{tabular}{L{3cm}L{4.5cm}L{5.5cm}C{2cm}}
+\toprule
+\textbf{Frequency} & \textbf{Task} & \textbf{What to check} & \textbf{Time} \\
+\midrule
+Daily & Dashboard health check & All machines showing status; no stuck active sessions & 2 min \\
+Weekly & RPi health check & Disk, RAM, bridge logs for errors & 10 min \\
+Weekly & Firestore index check & All 3 indexes show ``Enabled'' & 2 min \\
+Weekly & Card stock count & Reorder when $<$20 blank cards & 2 min \\
+Monthly & RPi SD card backup & \texttt{dd} image to secure storage & 30 min \\
+Monthly & Firestore quota review & Usage within Spark free tier limits & 5 min \\
+Monthly & Orphaned session cleanup & No \texttt{status:active} documents $>$3 hours old & 10 min \\
+Quarterly & MQTT password rotation & Change bridge and node MQTT passwords & 15 min \\
+As needed & Firmware update & OTA or direct flash; run regression tests & 30 min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Firmware Update Procedure}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Update \texttt{FW\_VERSION} in \texttt{config.h} (e.g., ``2.1.0'')
+    \item Build in Arduino IDE: Sketch $\rightarrow$ Export Compiled Binary
+    \item Upload \texttt{.bin} to Firebase Storage: \texttt{firmware/2.1.0.bin}
+    \item Copy the download URL from the uploaded file
+    \item Write to RTDB \texttt{/mms/ota}:
+\begin{lstlisting}[style=jsonlstyle]
+{
+  "firmware_url":   "https://firebasestorage.googleapis.com/.../2.1.0.bin",
+  "target_version": "2.1.0",
+  "released_at":    <current unix timestamp>
+}
+\end{lstlisting}
+    \item Monitor dashboard: each node shows ``updating... $\rightarrow$ idle (v2.1.0)''
+    \item Verify on Serial Monitor: \texttt{[OTA] Update complete — v2.0.0 $\rightarrow$ v2.1.0}
+    \item Run regression tests (Chapter~\ref{ch:testing}, Section 4)
+\end{enumerate}
+
+\begin{warnbox}
+Always test OTA on one node at a bench before pushing to production. Keep the last known-good \texttt{.bin} file archived locally. If OTA fails on all nodes, manual USB flash recovery is required.
+\end{warnbox}
+
+\section{Card Management}
+
+\subsection{Issuing a New Card}
+\begin{enumerate}[leftmargin=1.5em]
+    \item Admin creates student in web app (User Management $\rightarrow$ Add User)
+    \item At kiosk station: start Flask app (\texttt{python3 app.py})
+    \item Select student from dropdown; confirm machine permissions
+    \item Click ``Issue Card''; place blank MIFARE Classic 1K card on reader
+    \item Wait for ``WRITE\_SUCCESS''; card is personalised
+    \item Verify: take card to a node; confirm access is granted for permitted machines
+\end{enumerate}
+
+\subsection{Revoking a Card (Lost/Stolen)}
+\begin{enumerate}[leftmargin=1.5em]
+    \item Web app $\rightarrow$ User Management $\rightarrow$ select student $\rightarrow$ Revoke Card
+    \item All nodes receive revocation within 5s (if online)
+    \item Issue a replacement card (new blank card; new UID $\rightarrow$ new sector key)
+\end{enumerate}
+
+\section{Bridge Maintenance}
+
+\begin{lstlisting}[style=bashstyle]
+# Check bridge status
+sudo systemctl status mms-bridge
+
+# Restart bridge (if needed)
+sudo systemctl restart mms-bridge
+
+# Watch logs live
+sudo journalctl -u mms-bridge -f
+
+# Check for errors in last 7 days
+sudo journalctl -u mms-bridge --since "7 days ago" | grep -i "error|exception|failed"
+\end{lstlisting}
+
+\section{Database Cleanup}
+
+\subsection{Orphaned Sessions}
+
+Sessions with \texttt{status: "active"} older than 3 hours are orphaned (caused by power loss or network failure during session):
+
+\begin{lstlisting}[style=bashstyle]
+# On RPi, run the cleanup script
+/home/pi/mms/venv/bin/python3 /home/pi/mms/cleanup_orphans.py
+# Or add to crontab (runs daily at 3am):
+# 0 3 * * * /home/pi/mms/venv/bin/python3 /home/pi/mms/cleanup_orphans.py
+\end{lstlisting}
+
+\subsection{Stale RTDB Commands}
+
+The bridge auto-cleans commands older than 10 minutes. To clean manually:
+\begin{itemize}[leftmargin=1.5em]
+    \item Firebase Console $\rightarrow$ RTDB $\rightarrow$ \texttt{mms/commands} $\rightarrow$ delete specific node's command
+\end{itemize}

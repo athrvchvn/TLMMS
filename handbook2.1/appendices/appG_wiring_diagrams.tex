@@ -1,0 +1,104 @@
+%% Appendix G — Wiring Diagrams
+\chapter{Wiring Diagrams}
+\label{app:wiring}
+
+This appendix is the wiring reference for one ESP32 access node. Pin assignments must match \texttt{v2/access\_node/config.h}.
+
+\section{Node Wiring Overview}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=8mm and 9mm]
+\node[mmsblock, text width=34mm, minimum height=42mm] (esp) {ESP32 NodeMCU\\38-pin\\\texttt{config.h}};
+\node[mmsedge, above left=of esp] (rfid) {MFRC522\\RFID\\SPI};
+\node[mmsedge, above=of esp] (oled64) {128x64 OLED\\SPI};
+\node[mmsedge, above right=of esp] (oled32) {128x32 OLED\\I2C};
+\node[mmsedge, left=of esp] (slot) {HC89\\slot sensor};
+\node[mmsedge, right=of esp] (relay) {Relay / SSR\\machine live};
+\node[mmsedge, below left=of esp] (led) {WS2812\\status LED};
+\node[mmsedge, below=of esp] (encoder) {EC11\\encoder};
+\node[mmswarn, below right=of esp] (power) {HLK-PM01\\5V supply};
+\draw[mmsline] (esp) -- node[above,font=\scriptsize]{GPIO 5,18,19,23,27} (rfid);
+\draw[mmsline] (esp) -- node[right,font=\scriptsize]{GPIO 16,17,18,23,4} (oled64);
+\draw[mmsline] (esp) -- node[above,font=\scriptsize]{GPIO 21,22} (oled32);
+\draw[mmsline] (esp) -- node[above,font=\scriptsize]{GPIO 32} (slot);
+\draw[mmsline] (esp) -- node[above,font=\scriptsize]{GPIO 26} (relay);
+\draw[mmsline] (esp) -- node[below,font=\scriptsize]{GPIO 33} (led);
+\draw[mmsline] (esp) -- node[right,font=\scriptsize]{GPIO 34,35,25} (encoder);
+\draw[mmsline] (power) -- node[below,font=\scriptsize]{5V + 3V3 rail} (esp);
+\end{tikzpicture}
+\caption{Access node wiring overview}
+\label{fig:wiring_overview}
+\end{figure}
+
+\section{Canonical Pin Table}
+
+\begin{longtable}{L{3cm}L{3cm}L{3.5cm}L{5cm}}
+\toprule
+\textbf{Subsystem} & \textbf{Signal} & \textbf{ESP32 pin} & \textbf{Notes} \\
+\midrule
+\endhead
+MFRC522 & SDA / SS & GPIO 5 & SPI chip select; not I2C SDA \\
+MFRC522 & SCK & GPIO 18 & Shared SPI clock with OLED64 \\
+MFRC522 & MISO & GPIO 19 & SPI input \\
+MFRC522 & MOSI & GPIO 23 & Shared SPI MOSI with OLED64 \\
+MFRC522 & RST & GPIO 27 & Active-low reset \\
+OLED 128x64 & DC & GPIO 17 & SPI data/command select \\
+OLED 128x64 & CS & GPIO 16 & SPI chip select \\
+OLED 128x64 & RES & GPIO 4 & Active-low reset \\
+OLED 128x32 & SDA & GPIO 21 & I2C data \\
+OLED 128x32 & SCL & GPIO 22 & I2C clock; address \texttt{0x3C} \\
+Relay / SSR & IN & GPIO 26 & Relay must default OFF at boot \\
+HC89 & OUT & GPIO 32 & Card present is LOW with pull-up \\
+WS2812 & DIN & GPIO 33 & Use 470~$\Omega$ series resistor \\
+Encoder & CLK & GPIO 34 & Input-only; requires external 10k~$\Omega$ pull-up \\
+Encoder & DT & GPIO 35 & Input-only; requires external 10k~$\Omega$ pull-up \\
+Encoder & SW & GPIO 25 & Uses firmware pull-up \\
+\bottomrule
+\caption{Canonical access-node wiring table}
+\label{tab:wiring_canonical}
+\end{longtable}
+
+\section{Power Distribution}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=9mm and 11mm]
+\node[mmswarn] (mains) {240V AC\\fused input};
+\node[mmswarn, right=of mains] (hilink) {HLK-PM01\\5V DC};
+\node[mmsblock, right=of hilink] (vin) {ESP32 Vin\\internal 3V3};
+\node[mmsedge, above right=of vin] (modules) {3V3 modules\\RFID, OLEDs, HC89};
+\node[mmsedge, right=of vin] (relay) {5V relay\\or SSR input};
+\node[mmsedge, below right=of vin] (led) {WS2812\\5V direct};
+\draw[mmsline] (mains) -- node[above,font=\scriptsize]{fuse} (hilink);
+\draw[mmsline] (hilink) -- node[above,font=\scriptsize]{5V} (vin);
+\draw[mmsline] (vin) -- node[above,font=\scriptsize]{3V3 rail} (modules);
+\draw[mmsline] (hilink) |- node[pos=0.25,above,font=\scriptsize]{5V} (relay);
+\draw[mmsline] (hilink) |- node[pos=0.25,below,font=\scriptsize]{5V} (led);
+\end{tikzpicture}
+\caption{Power distribution}
+\label{fig:power_distribution}
+\end{figure}
+
+\begin{warnbox}
+Mains wiring must be performed only by someone competent to work on 240V AC equipment. The MMS relay must switch the live conductor through COM and NO terminals, and the machine must remain off when the relay is de-energised.
+\end{warnbox}
+
+\section{Interface-Specific Notes}
+
+\begin{longtable}{L{3.5cm}L{11cm}}
+\toprule
+\textbf{Interface} & \textbf{Engineering note} \\
+\midrule
+\endhead
+MFRC522 & Power only from 3.3V. Do not connect the module to 5V. \\
+OLED64 SPI & Shares SCK and MOSI with MFRC522; keep separate chip-select lines. \\
+OLED32 I2C & Most modules already include pull-ups; do not add unnecessary strong pull-ups. \\
+WS2812 & Place a 100~$\mu$F capacitor across VCC/GND at the LED module and a 470~$\Omega$ resistor in series with data. \\
+HC89 & Firmware debounces slot changes for 50 ms. Verify active-low behaviour before production installation. \\
+Encoder & GPIO 34 and GPIO 35 have no internal pull-ups; external 10k~$\Omega$ resistors are mandatory. \\
+Relay & Confirm \texttt{relay\_active\_high} before connecting the machine load. Test with a multimeter before energising the machine. \\
+\bottomrule
+\caption{Interface-specific wiring notes}
+\label{tab:wiring_notes}
+\end{longtable}

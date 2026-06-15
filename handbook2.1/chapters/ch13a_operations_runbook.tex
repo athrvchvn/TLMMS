@@ -1,0 +1,112 @@
+%% Chapter 13A — Operations Runbook
+\chapter{Operations Runbook}
+\label{ch:operations_runbook}
+
+This chapter defines recurring operating procedures. Print this chapter at semester handover and keep a current copy near the Raspberry Pi.
+
+\section{New Coordinator Handover}
+
+\begin{runbookbox}{Handover Package}
+The outgoing coordinator must transfer: dashboard admin access, Firebase project owner contact, Raspberry Pi SSH access method, master key custody location, kiosk station laptop, blank card stock, last known-good firmware binary, and the latest SD card backup.
+\end{runbookbox}
+
+\begin{longtable}{L{4cm}L{7cm}L{3cm}}
+\toprule
+\textbf{Item} & \textbf{Acceptance check} & \textbf{Owner} \\
+\midrule
+\endhead
+Dashboard access & New coordinator can log in and see all machines & Outgoing coordinator \\
+Kiosk station & New coordinator issues one test card successfully & Outgoing coordinator \\
+RPi access & New maintainer can run \texttt{systemctl status mms-bridge} & Infrastructure maintainer \\
+Master key custody & Sealed backup and password-manager entry are verified, not copied casually & Faculty in charge \\
+Recovery media & Latest RPi image and known-good firmware binary are readable & Technical maintainer \\
+Documentation & This handbook revision is reviewed and dated & New coordinator \\
+\bottomrule
+\caption{Coordinator handover acceptance checklist}
+\label{tab:handover}
+\end{longtable}
+
+\section{Semester Transition Checklist}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Export current users and sessions from Firestore for archival records.
+    \item Disable dashboard access for coordinators who are leaving the role.
+    \item Add incoming coordinators as Firebase Auth users and Firestore admins.
+    \item Count blank cards; reorder before orientation week if stock is below 50.
+    \item Run one full access test on every production machine.
+    \item Review revoked cards and lost-card incidents from the previous semester.
+    \item Confirm the Raspberry Pi SD card backup is less than 45 days old.
+    \item Confirm the master key custody record still names current responsible people.
+    \item Update the approval page and revision history if the handbook changed.
+\end{enumerate}
+
+\section{Daily, Weekly, Monthly Work}
+
+\begin{table}[H]
+\centering
+\caption{Operations cadence}
+\begin{tabular}{L{2.5cm}L{8cm}L{3.5cm}}
+\toprule
+\textbf{Cadence} & \textbf{Work} & \textbf{Escalate when} \\
+\midrule
+Daily & Open dashboard; verify no machine is unexpectedly offline and no session is stuck active. & Any relay state disagrees with the physical machine. \\
+Weekly & SSH to RPi; check disk, RAM, bridge logs, Mosquitto logs, and card stock. & Repeated bridge exceptions or disk usage above 80\%. \\
+Monthly & Make SD backup, review Firebase quota, archive old sessions if needed, run one card issuance drill. & Backup cannot be restored or quota trend is abnormal. \\
+Quarterly & Rotate MQTT password if authentication is enabled; review admin list and revoked cards. & Any unknown admin or unexpected credential change appears. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Master Key Rotation Runbook}
+\label{sec:master_key_rotation}
+
+Rotate the master key only when necessary: suspected leak, coordinator compromise, or planned migration rehearsal. Rotation invalidates every currently issued card.
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Freeze card issuance and announce a maintenance window.
+    \item Generate a new 32-byte key on a trusted machine.
+    \item Store the new key in the approved password manager and sealed physical backup.
+    \item Update \texttt{secrets.h}, \texttt{secrets\_station.h}, and \texttt{secrets.py}.
+    \item Re-flash all production nodes and the station writer.
+    \item Re-issue cards for all active users.
+    \item Keep old revoked-card records for audit, but mark the old key as retired.
+    \item Record the rotation reason, date, and approver in the revision log.
+\end{enumerate}
+
+\section{Lost Card Procedure}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Revoke the card immediately in the dashboard.
+    \item Confirm revocation reaches all online nodes.
+    \item Ask the user where the card was last seen and record the incident.
+    \item Issue a replacement card with a new UID.
+    \item If the lost card belonged to a coordinator or super admin, also review dashboard access.
+\end{enumerate}
+
+\section{Compromised Coordinator Procedure}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Remove the account from Firebase Auth and Firestore admin collections.
+    \item Rotate any shared passwords known to that coordinator.
+    \item Review recent dashboard actions: user changes, revocations, OTA triggers, admin additions.
+    \item Inspect whether master key custody was exposed. If yes, execute Section~\ref{sec:master_key_rotation}.
+    \item Document the incident and the recovery actions.
+\end{enumerate}
+
+\section{Disaster Recovery Summary}
+
+\begin{longtable}{L{3.5cm}L{5cm}L{5.5cm}}
+\toprule
+\textbf{Disaster} & \textbf{Immediate action} & \textbf{Recovery path} \\
+\midrule
+\endhead
+Raspberry Pi failure & Leave nodes powered; sessions buffer locally & Restore latest SD card image or rebuild from deployment guide. \\
+Firebase outage & Do not repeatedly restart nodes & Wait for service recovery; restart bridge after Firebase is healthy. \\
+ESP32 node failure & Bypass only under electrical supervision & Replace module, flash production firmware, rerun validation. \\
+Bad OTA & Stop further rollout & Allow rollback; manually flash failed nodes with known-good binary. \\
+Lost master key & Stop issuance & Generate new key, re-flash all nodes, re-issue all cards. \\
+Database corruption & Freeze manual edits & Restore machine seed data; reconstruct users from cards if needed. \\
+\bottomrule
+\caption{Disaster recovery decision table}
+\label{tab:dr_summary}
+\end{longtable}

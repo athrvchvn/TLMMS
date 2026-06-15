@@ -1,0 +1,365 @@
+%% MMS V2 Technical Handbook
+%% Machine Management System — Tinkerers' Lab, IIT Indore
+%% Compile: pdflatex main.tex (run twice for cross-references)
+%% Required packages: texlive-full or MikTeX full
+\documentclass[12pt,a4paper,twoside]{report}
+
+%% --- Packages ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{pmboxdraw}       % box-drawing characters in verbatim/listings
+\usepackage[a4paper,margin=2.5cm,inner=3cm,outer=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{mdframed}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,shapes.multipart,fit,calc,matrix}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{verbatim}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{datetime2}
+\usepackage{pdfpages}
+
+%% --- Colours ---
+\definecolor{mmsdark}{RGB}{31,56,100}
+\definecolor{mmsblue}{RGB}{52,101,164}
+\definecolor{mmslight}{RGB}{221,234,249}
+\definecolor{mmsgray}{RGB}{100,100,100}
+\definecolor{codegreen}{RGB}{0,128,0}
+\definecolor{codegray}{RGB}{128,128,128}
+\definecolor{codeblue}{RGB}{0,0,200}
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{mmsgreen}{RGB}{45,132,92}
+\definecolor{mmsamber}{RGB}{196,126,38}
+\definecolor{mmsred}{RGB}{178,55,55}
+
+%% --- Hyperref Setup ---
+\hypersetup{
+    colorlinks=true,
+    linkcolor=mmsblue,
+    citecolor=mmsblue,
+    urlcolor=mmsblue,
+    pdftitle={MMS V2 Technical Handbook},
+    pdfauthor={Tinkerers' Lab, IIT Indore},
+    pdfsubject={Machine Management System Version 2},
+    pdfkeywords={RFID, ESP32, MQTT, Firebase, IoT, embedded systems},
+}
+
+%% --- Code Listings ---
+\lstdefinestyle{cstyle}{
+    backgroundcolor=\color{codebg},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue}\bfseries,
+    stringstyle=\color{mmsdark},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=8pt,
+    numberstyle=\tiny\color{codegray},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4,
+    frame=single,
+    rulecolor=\color{mmsgray!40},
+    xleftmargin=15pt,
+    xrightmargin=5pt,
+}
+
+\lstdefinestyle{bashstyle}{
+    backgroundcolor=\color{black!90},
+    basicstyle=\ttfamily\small\color{white},
+    breaklines=true,
+    frame=none,
+    xleftmargin=10pt,
+    xrightmargin=5pt,
+}
+
+\lstdefinestyle{jsonlstyle}{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    rulecolor=\color{mmsgray!40},
+    xleftmargin=15pt,
+    numberstyle=\tiny\color{codegray},
+    numbers=left,
+    numbersep=8pt,
+}
+
+\lstset{style=cstyle}
+
+%% --- Page Style ---
+\pagestyle{fancy}
+\setlength{\headheight}{14pt}
+\fancyhf{}
+\fancyhead[LE,RO]{\small\thepage}
+\fancyhead[RE]{\small\nouppercase{\leftmark}}
+\fancyhead[LO]{\small\nouppercase{\rightmark}}
+\fancyfoot[C]{\small MMS V2 Technical Handbook — Tinkerers' Lab, IIT Indore}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+%% --- Title Section Formatting ---
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries\color{mmsdark}}
+    {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{40pt}
+
+\titleformat{\section}
+    {\normalfont\Large\bfseries\color{mmsblue}}
+    {\thesection}{1em}{}
+\titleformat{\subsection}
+    {\normalfont\large\bfseries\color{mmsdark}}
+    {\thesubsection}{1em}{}
+
+%% --- Warning / Note Boxes ---
+\newmdenv[
+    backgroundcolor=mmslight,
+    linecolor=mmsblue,
+    linewidth=2pt,
+    leftline=true,
+    rightline=false,
+    topline=false,
+    bottomline=false,
+    innerleftmargin=10pt,
+    innerrightmargin=5pt,
+    innertopmargin=5pt,
+    innerbottommargin=5pt,
+]{notebox}
+
+\newmdenv[
+    backgroundcolor=red!10,
+    linecolor=red!70,
+    linewidth=2pt,
+    leftline=true,
+    rightline=false,
+    topline=false,
+    bottomline=false,
+    innerleftmargin=10pt,
+    innerrightmargin=5pt,
+    innertopmargin=5pt,
+    innerbottommargin=5pt,
+]{warnbox}
+
+\newmdenv[
+    backgroundcolor=green!10,
+    linecolor=green!60!black,
+    linewidth=2pt,
+    leftline=true,
+    rightline=false,
+    topline=false,
+    bottomline=false,
+    innerleftmargin=10pt,
+]{tipbox}
+
+%% --- Professional handbook boxes ---
+\tcbset{
+    mmsbox/.style={
+        enhanced,
+        sharp corners,
+        boxrule=0.5pt,
+        colback=white,
+        colframe=mmsblue!70,
+        fonttitle=\bfseries,
+        coltitle=white,
+        colbacktitle=mmsdark,
+        attach boxed title to top left={xshift=4mm,yshift=-2mm},
+        boxed title style={sharp corners,boxrule=0pt},
+        top=4mm,
+        left=3mm,
+        right=3mm,
+        bottom=3mm
+    }
+}
+\newtcolorbox{controlbox}[1]{mmsbox,title={#1}}
+\newtcolorbox{runbookbox}[1]{mmsbox,colframe=mmsgreen!70,title={#1}}
+\newtcolorbox{riskbox}[1]{mmsbox,colframe=mmsamber!80,title={#1}}
+
+%% --- TikZ styles ---
+\tikzset{
+    mmsblock/.style={draw=mmsblue!75, fill=mmslight, rounded corners=2pt, align=center, minimum height=8mm, text width=28mm, font=\small},
+    mmscloud/.style={draw=mmsdark!80, fill=blue!5, rounded corners=2pt, align=center, minimum height=10mm, text width=34mm, font=\small},
+    mmsedge/.style={draw=mmsgreen!80!black, fill=green!7, rounded corners=2pt, align=center, minimum height=8mm, text width=29mm, font=\small},
+    mmswarn/.style={draw=mmsamber!90!black, fill=yellow!10, rounded corners=2pt, align=center, minimum height=8mm, text width=30mm, font=\small},
+    mmsline/.style={-{Latex[length=2.4mm]}, thick, draw=mmsdark!75},
+    mmsdash/.style={-{Latex[length=2.4mm]}, thick, dashed, draw=mmsgray},
+    mmsbus/.style={thick, draw=mmsdark!75},
+    state/.style={draw=mmsdark!80, fill=white, rounded corners=2pt, align=center, minimum height=7mm, text width=24mm, font=\small},
+    decision/.style={diamond, draw=mmsamber!90!black, fill=yellow!10, aspect=2, align=center, inner sep=1pt, font=\scriptsize}
+}
+
+%% --- Column type for long tables ---
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+%% ==========================================
+\begin{document}
+%% ==========================================
+
+%% --- Title Page ---
+\begin{titlepage}
+\centering
+\vspace*{1.0cm}
+\includegraphics[width=0.20\linewidth]{figures/logo.jpeg}\\[1.1cm]
+{\Large\color{mmsgray} Tinkerers' Lab}\\[0.15cm]
+{\large\color{mmsgray} Indian Institute of Technology Indore}\\[1.0cm]
+{\color{mmsdark}\rule{\linewidth}{1.8pt}}\\[0.45cm]
+{\color{mmsdark}\Huge\bfseries Machine Management System}\\[0.2cm]
+{\color{mmsblue}\LARGE V2 Engineering Handbook}\\[0.45cm]
+{\color{mmsdark}\rule{\linewidth}{1.8pt}}\\[1.2cm]
+
+\begin{tabular}{ll}
+\textbf{Document number:} & TL-MMS-V2-HBK-001 \\[4pt]
+\textbf{Document type:} & Engineering handbook \\[4pt]
+\textbf{Revision:}       & 2.0.0 \\[4pt]
+\textbf{Release date:}   & June 2026 \\[4pt]
+\textbf{Release status:} & Production baseline \\[4pt]
+\textbf{Audience:}      & Coordinators, maintainers, and project engineers \\[4pt]
+\end{tabular}
+
+\vfill
+{\color{mmsgray}\small
+Access control, usage logging, deployment, maintenance, and recovery reference for MMS V2.
+}
+\end{titlepage}
+
+%% --- Revision History ---
+\clearpage
+\chapter*{Revision History}
+\addcontentsline{toc}{chapter}{Revision History}
+\begin{longtable}{L{1.5cm}L{2.8cm}L{3.5cm}L{6.7cm}}
+\toprule
+\textbf{Rev} & \textbf{Date} & \textbf{Author} & \textbf{Description} \\
+\midrule
+1.0 & Sept 2025 & Atharva Chavan & V1 system documentation and deployment notes \\
+2.0 & Jun 2026 & Atharva Chavan & V2 engineering baseline: RFID schema, MQTT bridge, Firebase backend, operations and recovery procedures \\
+\bottomrule
+\end{longtable}
+
+%% --- Authorship ---
+\clearpage
+\chapter*{Authorship and Release Note}
+\addcontentsline{toc}{chapter}{Authorship and Release Note}
+
+\begin{controlbox}{Prepared By}
+\begin{tabular}{ll}
+\textbf{Author} & Atharva Chavan \\
+\textbf{Organisation} & Tinkerers' Lab, IIT Indore \\
+\textbf{Document} & MMS V2 Engineering Handbook \\
+\textbf{Revision} & 2.0.0, production baseline \\
+\end{tabular}
+\end{controlbox}
+
+This handbook is written as a working engineering reference for the MMS V2 installation in Tinkerers' Lab. It is intended for coordinators and maintainers who need to operate the system, diagnose failures, issue and revoke cards, deploy firmware, and hand the system forward without relying on the original implementation team.
+
+\begin{controlbox}{Maintainer Note}
+Update this handbook when production behaviour changes. In particular, record firmware releases, wiring changes, Firebase schema changes, security decisions, and recovery procedure changes before the next coordinator handover.
+\end{controlbox}
+
+%% --- Executive Summary ---
+\clearpage
+\chapter*{Executive Summary}
+\addcontentsline{toc}{chapter}{Executive Summary}
+
+The Machine Management System Version 2 (MMS V2) is an IoT-based access control and usage tracking platform for the Tinkerers' Lab at IIT Indore. It controls access to five workshop machines (3D printer, laser cutter, grinder, two soldering stations) using RFID cards and logs all usage to a cloud database.
+
+MMS V2 replaces a non-functional V1 system. The V1 system had a critical RFID block address mismatch, unhashed PIN storage, non-unique MQTT client IDs, no watchdog, no cloud logging, and was never tested end-to-end.
+
+V2 is built on the ESP32 microcontroller, uses MIFARE Classic 1K cards with a custom cryptographic sector key scheme, routes session events through a Raspberry Pi MQTT broker to Firebase, and exposes a React web dashboard for real-time monitoring and administration.
+
+This handbook serves as the complete reference for anyone deploying, maintaining, or extending MMS V2. It is written for longevity --- the assumption is that the original developers may no longer be available, and a future maintainer with general embedded systems knowledge should be able to understand and operate the system from this document alone.
+
+\begin{controlbox}{Operational Promise}
+MMS V2 is designed so machine access remains available during WiFi, Raspberry Pi, or Firebase outages. Safety-critical machine control remains local to the ESP32 node. Cloud services improve visibility and coordination; they are not required for the relay decision that starts or stops a session.
+\end{controlbox}
+
+%% --- Glossary and Acronyms ---
+\chapter*{Glossary and Acronyms}
+\addcontentsline{toc}{chapter}{Glossary and Acronyms}
+\begin{longtable}{L{3cm}L{11cm}}
+\toprule
+\textbf{Term} & \textbf{Meaning} \\
+\midrule
+Access node & ESP32-based controller attached to one physical machine. \\
+Bridge & Raspberry Pi service that moves MQTT events into Firebase and Firebase commands back to MQTT. \\
+DESFire & More secure NXP card family recommended for future migration from MIFARE Classic. \\
+FMEA & Failure Mode and Effects Analysis; a structured reliability review. \\
+HC89 & Optical slot sensor used to detect whether an RFID card is physically inserted. \\
+LittleFS & ESP32 flash filesystem used for cached revocation lists and offline session logs. \\
+MFRC522 & RFID reader used by both access nodes and the card issuing station. \\
+MQTT & Lightweight publish/subscribe protocol used between nodes and the Raspberry Pi. \\
+OTA & Over-the-air firmware update delivered through Firebase Storage and MQTT command flow. \\
+RTDB & Firebase Realtime Database, used for live node state and commands. \\
+\bottomrule
+\end{longtable}
+
+%% --- Table of Contents ---
+\tableofcontents
+
+\listoftables
+
+\listoffigures
+
+%% ==========================================
+%% CHAPTERS
+%% ==========================================
+\input{chapters/ch00_quick_start}
+\input{chapters/ch01_project_overview}
+\input{chapters/ch02_history}
+\input{chapters/ch03_system_architecture}
+\input{chapters/ch04_hardware_design}
+\input{chapters/ch05_rfid_card_architecture}
+\input{chapters/ch06_firmware_architecture}
+\input{chapters/ch07_backend_architecture}
+\input{chapters/ch08_firebase_design}
+\input{chapters/ch09_web_application}
+\input{chapters/ch10_security_model}
+\input{chapters/ch10a_engineering_review}
+\input{chapters/ch11_deployment_guide}
+\input{chapters/ch12_testing_and_validation}
+\input{chapters/ch13_maintenance}
+\input{chapters/ch13a_operations_runbook}
+\input{chapters/ch14_troubleshooting}
+\input{chapters/ch15_future_improvements}
+
+%% ==========================================
+%% APPENDICES
+%% ==========================================
+\appendix
+\input{appendices/appA_pin_mappings}
+\input{appendices/appB_mqtt_reference}
+\input{appendices/appC_firestore_schema}
+\input{appendices/appD_rtdb_schema}
+\input{appendices/appE_machine_registry}
+\input{appendices/appF_bom}
+\input{appendices/appG_wiring_diagrams}
+\input{appendices/appH_ota_procedures}
+\input{appendices/appI_card_issuance}
+\input{appendices/appJ_validation_procedures}
+
+%% --- Bibliography (if needed) ---
+% \bibliographystyle{plain}
+% \bibliography{references}
+
+\end{document}

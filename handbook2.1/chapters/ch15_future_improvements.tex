@@ -1,0 +1,104 @@
+%% Chapter 15 — Future Improvements
+\chapter{Future Improvements}
+\label{ch:future}
+
+\section{Planned (Phase 4)}
+
+\subsection{PIN Verification at Machine}
+
+The rotary encoder (EC11) is already wired (CLK=GPIO34, DT=GPIO35, SW=GPIO25). The card already stores the PIN hash (Block 5, bytes 0--7). What remains is the firmware implementation:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item New firmware state: \texttt{PIN\_ENTRY} (inserted between \texttt{CARD\_READING} and \texttt{SESSION\_ACTIVE})
+    \item OLED UI: ``Enter PIN: ----''; rotate encoder to select digit; SW to confirm
+    \item 30-second timeout for PIN entry
+    \item 3-attempt lockout before returning to IDLE
+    \item PIN hash verification: compute $\text{HMAC-SHA256}(\text{master\_key}\|\text{uid\_hex}, \text{entered\_pin})[0..7]$ and compare with Block 5 bytes 0--7
+    \item No card re-issue required (PIN hash is already on the card)
+\end{enumerate}
+
+\section{Recommended (Near-term)}
+
+\subsection{MQTT Authentication and ACLs}
+
+Enable \texttt{allow\_anonymous false} in Mosquitto and add per-node ACLs. Without this, any device on the lab WiFi can publish to \texttt{mms/nodes/+/command} and trigger a remote stop or OTA on any node.
+
+See deployment package Section 07 for the procedure.
+
+\subsection{Session Booking / Reservation}
+
+A booking system would allow students to reserve a machine time slot in advance. This would require:
+\begin{itemize}[leftmargin=1.5em]
+    \item New Firestore collection: \texttt{/reservations}
+    \item Web app booking UI (calendar view)
+    \item Node integration: on card tap, check if current slot is reserved by this student (requires network call --- breaks offline access)
+    \item Design carefully for offline fallback (default to deny if no network, or default to allow)
+\end{itemize}
+
+\subsection{Analytics Dashboard}
+
+The existing sessions collection contains all data needed for analytics. Adding a \texttt{/analytics} route to the web app would provide:
+\begin{itemize}[leftmargin=1.5em]
+    \item Machine utilisation heat map (by hour and day of week)
+    \item Per-student usage summary
+    \item Peak demand periods
+    \item Machines with highest timeout rate (students exceeding time limits)
+\end{itemize}
+
+No backend changes needed; all queries are on the existing \texttt{sessions} collection using the already-deployed Firestore indexes.
+
+\subsection{Card Expiry}
+
+Block 6 of Sector 1 is currently reserved (all zeros). It can be used to store an expiry date:
+\begin{itemize}[leftmargin=1.5em]
+    \item Block 6 bytes 0--3: expiry Unix timestamp (uint32 LE)
+    \item Block 6 byte 4: academic year
+    \item Firmware adds one check: if \texttt{card.expiry\_ts > 0 \&\& now > expiry\_ts} $\rightarrow$ deny with reason ``expired''
+    \item Cards would be renewed annually (re-issue with new expiry; permissions unchanged)
+\end{itemize}
+
+\section{Long-term Considerations}
+
+\subsection{Multi-Lab Deployment}
+
+The architecture supports multiple labs with the same Firebase project but separate RPis. Machine IDs must be globally unique across all labs. See deployment package Section 17 for the multi-lab design.
+
+\subsection{Replacing Firebase with Self-Hosted Backend}
+
+If the lab decides to move away from Google Firebase (data sovereignty, cost at scale, compliance):
+\begin{itemize}[leftmargin=1.5em]
+    \item Firestore can be replaced with any document database (MongoDB, CouchDB, PostgreSQL with JSONB)
+    \item RTDB can be replaced with Redis pub/sub or a second MQTT broker
+    \item Firebase Hosting can be replaced with Nginx
+    \item Firebase Auth can be replaced with Keycloak or Auth0
+\end{itemize}
+
+The bridge.py would need to be updated to use the alternative client libraries. The firmware does not connect to Firebase directly and would require no changes.
+
+\subsection{Hardware Iterations}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Custom PCB}: Replace perfboard wiring with a custom PCB. Reduces assembly time from 4 hours to 30 minutes per node. Include all components in a single board form factor.
+    \item \textbf{ESP32-S3}: The newer ESP32-S3 has more SRAM (512KB vs 320KB) and improved WiFi stability. Firmware changes required are minimal.
+    \item \textbf{Ethernet instead of WiFi}: For machines in RF-shielded environments. ESP32 does not have built-in Ethernet; would require an ENC28J60 or W5500 Ethernet module.
+    \item \textbf{Battery backup}: Add a small LiPo battery and charging circuit to maintain the ESP32 node during brief power outages. The relay would lose power anyway (machine is AC powered), but the node could log the power loss event and transmit it when AC returns.
+\end{itemize}
+
+\section{Known Limitations to Address}
+
+\begin{table}[H]
+\centering
+\caption{Known Limitations and Improvement Path}
+\begin{tabular}{L{5cm}L{5cm}L{4.5cm}}
+\toprule
+\textbf{Limitation} & \textbf{Impact} & \textbf{Improvement} \\
+\midrule
+Revocation not instant (offline nodes) & Stolen card may work until node reconnects & Add Ethernet; ensure nodes are always online \\
+PIN not verified at machine & Card theft = machine access & Phase 4 implementation \\
+MQTT no TLS & Messages readable on LAN & Enable TLS on Mosquitto (port 8883) \\
+No MQTT auth (default) & Any LAN device can inject commands & Enable after initial deployment \\
+LittleFS 50KB buffer cap & $\sim$500 sessions lost if RPi down $>$hours & Increase buffer (limited by flash partition) \\
+Single RPi (SPOF) & No bridge = no cloud sync & RPi cluster (high availability Mosquitto) \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,253 @@
+\contentsline {chapter}{Revision History}{2}{chapter*.1}%
+\contentsline {chapter}{Authorship and Release Note}{3}{chapter*.2}%
+\contentsline {chapter}{Executive Summary}{4}{chapter*.3}%
+\contentsline {chapter}{Glossary and Acronyms}{5}{chapter*.4}%
+\contentsline {chapter}{\numberline {1}Quick Start for Coordinators}{14}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Coordinator Checklist}{14}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Add a User}{14}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Issue and Verify a Card}{15}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Revoke a Lost Card}{15}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Perform an OTA Update}{15}{section.1.5}%
+\contentsline {section}{\numberline {1.6}Escalation Rules}{16}{section.1.6}%
+\contentsline {chapter}{\numberline {2}Project Overview}{17}{chapter.2}%
+\contentsline {section}{\numberline {2.1}What Is MMS V2?}{17}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Scope and Objectives}{17}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}What MMS V2 Does}{17}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}What MMS V2 Does Not Do}{17}{subsection.2.2.2}%
+\contentsline {section}{\numberline {2.3}System Scale}{18}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Deployed Machines}{18}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Key Stakeholders}{19}{section.2.5}%
+\contentsline {section}{\numberline {2.6}Glossary}{19}{section.2.6}%
+\contentsline {chapter}{\numberline {3}History and V1 Post-Mortem}{21}{chapter.3}%
+\contentsline {section}{\numberline {3.1}V1 System Background}{21}{section.3.1}%
+\contentsline {section}{\numberline {3.2}V1 Failure Analysis}{22}{section.3.2}%
+\contentsline {section}{\numberline {3.3}V1 Deployment Blockers}{22}{section.3.3}%
+\contentsline {section}{\numberline {3.4}V2 Design Decisions Driven by V1 Failures}{23}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Decision Records}{23}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}Local Access Decision (No Cloud Call on Access Path)}{24}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}Card Carries Permissions}{24}{subsection.3.5.2}%
+\contentsline {subsection}{\numberline {3.5.3}Per-Card Sector Key Derivation}{24}{subsection.3.5.3}%
+\contentsline {subsection}{\numberline {3.5.4}5-Minute Command TTL}{24}{subsection.3.5.4}%
+\contentsline {subsection}{\numberline {3.5.5}MQTT Buffer Size 1536 Bytes}{24}{subsection.3.5.5}%
+\contentsline {chapter}{\numberline {4}System Architecture}{25}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Architecture Overview}{25}{section.4.1}%
+\contentsline {section}{\numberline {4.2}C4-Style System Context}{26}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Communication Paths}{26}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Access Decision (Offline-capable)}{26}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Session Event Flow}{27}{subsection.4.3.2}%
+\contentsline {subsection}{\numberline {4.3.3}Remote Stop Flow}{28}{subsection.4.3.3}%
+\contentsline {subsection}{\numberline {4.3.4}Revocation Flow}{28}{subsection.4.3.4}%
+\contentsline {subsection}{\numberline {4.3.5}OTA Update Flow}{29}{subsection.4.3.5}%
+\contentsline {section}{\numberline {4.4}MQTT Topic Map}{29}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Offline Degradation Table}{30}{section.4.5}%
+\contentsline {chapter}{\numberline {5}Hardware Design}{31}{chapter.5}%
+\contentsline {section}{\numberline {5.1}ESP32 NodeMCU 38-pin}{31}{section.5.1}%
+\contentsline {section}{\numberline {5.2}GPIO Pin Assignments}{32}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Component Details}{32}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}MFRC522 RFID Reader}{32}{subsection.5.3.1}%
+\contentsline {subsection}{\numberline {5.3.2}SSD1306 128$\times $64 SPI OLED (Primary Display)}{33}{subsection.5.3.2}%
+\contentsline {subsection}{\numberline {5.3.3}SSD1306 128$\times $32 I2C OLED (Status Strip)}{33}{subsection.5.3.3}%
+\contentsline {subsection}{\numberline {5.3.4}HC89 Optical IR Slot Sensor}{33}{subsection.5.3.4}%
+\contentsline {subsection}{\numberline {5.3.5}Relay Module (Mechanical or SSR)}{34}{subsection.5.3.5}%
+\contentsline {subsubsection}{Mechanical Relay}{34}{subsection.5.3.5}%
+\contentsline {subsubsection}{Solid-State Relay (SSR)}{34}{subsection.5.3.5}%
+\contentsline {subsection}{\numberline {5.3.6}WS2812B RGB LED}{34}{subsection.5.3.6}%
+\contentsline {subsection}{\numberline {5.3.7}EC11 Rotary Encoder}{34}{subsection.5.3.7}%
+\contentsline {subsection}{\numberline {5.3.8}Power Supply}{35}{subsection.5.3.8}%
+\contentsline {section}{\numberline {5.4}Power Budget}{35}{section.5.4}%
+\contentsline {chapter}{\numberline {6}RFID Card Architecture}{36}{chapter.6}%
+\contentsline {section}{\numberline {6.1}MIFARE Classic 1K Overview}{36}{section.6.1}%
+\contentsline {section}{\numberline {6.2}V2 Card Schema}{36}{section.6.2}%
+\contentsline {subsection}{\numberline {6.2.1}Sector 1 Layout}{37}{subsection.6.2.1}%
+\contentsline {subsection}{\numberline {6.2.2}Schema Version Byte}{37}{subsection.6.2.2}%
+\contentsline {section}{\numberline {6.3}Sector Key Derivation}{37}{section.6.3}%
+\contentsline {section}{\numberline {6.4}PIN Hash}{38}{section.6.4}%
+\contentsline {section}{\numberline {6.5}Machine Permission Bitmask}{38}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Card Write Process}{39}{section.6.6}%
+\contentsline {section}{\numberline {6.7}Card Read Process}{39}{section.6.7}%
+\contentsline {chapter}{\numberline {7}Firmware Architecture}{40}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Firmware Structure}{40}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Firmware State Machine}{42}{section.7.2}%
+\contentsline {section}{\numberline {7.3}NVS Configuration}{42}{section.7.3}%
+\contentsline {section}{\numberline {7.4}LittleFS File Layout}{43}{section.7.4}%
+\contentsline {section}{\numberline {7.5}Session Log Entry Format}{44}{section.7.5}%
+\contentsline {section}{\numberline {7.6}Display Content}{44}{section.7.6}%
+\contentsline {subsection}{\numberline {7.6.1}Primary OLED (128$\times $64)}{44}{subsection.7.6.1}%
+\contentsline {subsection}{\numberline {7.6.2}Status Strip OLED (128$\times $32)}{44}{subsection.7.6.2}%
+\contentsline {section}{\numberline {7.7}WS2812 LED State Map}{45}{section.7.7}%
+\contentsline {section}{\numberline {7.8}Watchdog}{45}{section.7.8}%
+\contentsline {chapter}{\numberline {8}Backend Architecture}{46}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Raspberry Pi Role}{46}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Mosquitto Configuration}{46}{section.8.2}%
+\contentsline {section}{\numberline {8.3}bridge.py Architecture}{47}{section.8.3}%
+\contentsline {section}{\numberline {8.4}Session Event Processing}{47}{section.8.4}%
+\contentsline {section}{\numberline {8.5}Command Forwarding}{48}{section.8.5}%
+\contentsline {section}{\numberline {8.6}Revocation List Management}{49}{section.8.6}%
+\contentsline {section}{\numberline {8.7}Systemd Service}{49}{section.8.7}%
+\contentsline {section}{\numberline {8.8}Health Check Endpoint}{50}{section.8.8}%
+\contentsline {section}{\numberline {8.9}MQTT Authentication}{50}{section.8.9}%
+\contentsline {chapter}{\numberline {9}Firebase Design}{52}{chapter.9}%
+\contentsline {section}{\numberline {9.1}Firebase Services Used}{52}{section.9.1}%
+\contentsline {section}{\numberline {9.2}Why Two Databases?}{52}{section.9.2}%
+\contentsline {section}{\numberline {9.3}Firestore Schema}{52}{section.9.3}%
+\contentsline {subsection}{\numberline {9.3.1}/users/\{roll\_number\}}{52}{subsection.9.3.1}%
+\contentsline {subsection}{\numberline {9.3.2}/machines/\{machine\_id\}}{53}{subsection.9.3.2}%
+\contentsline {subsection}{\numberline {9.3.3}/sessions/\{auto\_id\}}{53}{subsection.9.3.3}%
+\contentsline {subsection}{\numberline {9.3.4}/revoked/\{card\_uid\}}{54}{subsection.9.3.4}%
+\contentsline {subsection}{\numberline {9.3.5}/admins/\{uid\} and /super\_admins/\{uid\}}{54}{subsection.9.3.5}%
+\contentsline {section}{\numberline {9.4}RTDB Schema}{54}{section.9.4}%
+\contentsline {section}{\numberline {9.5}Firestore Security Rules}{55}{section.9.5}%
+\contentsline {section}{\numberline {9.6}Firestore Indexes}{56}{section.9.6}%
+\contentsline {chapter}{\numberline {10}Web Application}{58}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Overview}{58}{section.10.1}%
+\contentsline {section}{\numberline {10.2}Technology Stack}{58}{section.10.2}%
+\contentsline {section}{\numberline {10.3}Authentication Flow}{58}{section.10.3}%
+\contentsline {section}{\numberline {10.4}Feature Reference}{59}{section.10.4}%
+\contentsline {section}{\numberline {10.5}Critical V1 Bugs Fixed in Web App}{59}{section.10.5}%
+\contentsline {subsection}{\numberline {10.5.1}\texttt {addDoc} $\rightarrow $ \texttt {setDoc} for User Creation}{59}{subsection.10.5.1}%
+\contentsline {subsection}{\numberline {10.5.2}PIN Hashing}{60}{subsection.10.5.2}%
+\contentsline {section}{\numberline {10.6}Environment Configuration}{60}{section.10.6}%
+\contentsline {section}{\numberline {10.7}Build and Deploy}{60}{section.10.7}%
+\contentsline {chapter}{\numberline {11}Security Model}{61}{chapter.11}%
+\contentsline {section}{\numberline {11.1}Threat Model}{61}{section.11.1}%
+\contentsline {section}{\numberline {11.2}Security Controls}{61}{section.11.2}%
+\contentsline {section}{\numberline {11.3}Attack Surface}{61}{section.11.3}%
+\contentsline {subsection}{\numberline {11.3.1}Card Forgery Prevention}{62}{subsection.11.3.1}%
+\contentsline {subsection}{\numberline {11.3.2}MIFARE Classic and Crypto-1 Limitations}{62}{subsection.11.3.2}%
+\contentsline {subsection}{\numberline {11.3.3}Card Cloning Risk}{62}{subsection.11.3.3}%
+\contentsline {subsection}{\numberline {11.3.4}Revocation}{63}{subsection.11.3.4}%
+\contentsline {subsection}{\numberline {11.3.5}Admin Web App}{63}{subsection.11.3.5}%
+\contentsline {subsection}{\numberline {11.3.6}MQTT Security}{63}{subsection.11.3.6}%
+\contentsline {subsection}{\numberline {11.3.7}Secrets Management}{63}{subsection.11.3.7}%
+\contentsline {subsection}{\numberline {11.3.8}Firmware Security}{64}{subsection.11.3.8}%
+\contentsline {section}{\numberline {11.4}DESFire Migration Path}{64}{section.11.4}%
+\contentsline {section}{\numberline {11.5}Security Assumptions and Limitations}{65}{section.11.5}%
+\contentsline {section}{\numberline {11.6}Security Checklist for Future Maintainers}{65}{section.11.6}%
+\contentsline {chapter}{\numberline {12}Engineering Review}{66}{chapter.12}%
+\contentsline {section}{\numberline {12.1}Architecture Decision Records}{66}{section.12.1}%
+\contentsline {section}{\numberline {12.2}Design Tradeoffs}{67}{section.12.2}%
+\contentsline {section}{\numberline {12.3}Scalability Analysis}{67}{section.12.3}%
+\contentsline {section}{\numberline {12.4}Monitoring Strategy}{68}{section.12.4}%
+\contentsline {section}{\numberline {12.5}Failure Mode and Effects Analysis}{68}{section.12.5}%
+\contentsline {section}{\numberline {12.6}Security Review Summary}{69}{section.12.6}%
+\contentsline {chapter}{\numberline {13}Deployment Guide}{70}{chapter.13}%
+\contentsline {section}{\numberline {13.1}Deployment Overview}{70}{section.13.1}%
+\contentsline {section}{\numberline {13.2}Master Key Generation}{70}{section.13.2}%
+\contentsline {section}{\numberline {13.3}Node Provisioning Summary}{71}{section.13.3}%
+\contentsline {section}{\numberline {13.4}Critical Pre-Deployment Verification}{71}{section.13.4}%
+\contentsline {section}{\numberline {13.5}Secrets Files Reference}{72}{section.13.5}%
+\contentsline {chapter}{\numberline {14}Testing and Validation}{73}{chapter.14}%
+\contentsline {section}{\numberline {14.1}Validation Strategy}{73}{section.14.1}%
+\contentsline {section}{\numberline {14.2}Hardware Validation Suite}{73}{section.14.2}%
+\contentsline {section}{\numberline {14.3}Integration Test Suite}{74}{section.14.3}%
+\contentsline {section}{\numberline {14.4}Pass/Fail Criteria}{75}{section.14.4}%
+\contentsline {section}{\numberline {14.5}Regression Testing After Firmware Updates}{75}{section.14.5}%
+\contentsline {chapter}{\numberline {15}Maintenance Procedures}{76}{chapter.15}%
+\contentsline {section}{\numberline {15.1}Maintenance Schedule Summary}{76}{section.15.1}%
+\contentsline {section}{\numberline {15.2}Firmware Update Procedure}{76}{section.15.2}%
+\contentsline {section}{\numberline {15.3}Card Management}{77}{section.15.3}%
+\contentsline {subsection}{\numberline {15.3.1}Issuing a New Card}{77}{subsection.15.3.1}%
+\contentsline {subsection}{\numberline {15.3.2}Revoking a Card (Lost/Stolen)}{77}{subsection.15.3.2}%
+\contentsline {section}{\numberline {15.4}Bridge Maintenance}{77}{section.15.4}%
+\contentsline {section}{\numberline {15.5}Database Cleanup}{78}{section.15.5}%
+\contentsline {subsection}{\numberline {15.5.1}Orphaned Sessions}{78}{subsection.15.5.1}%
+\contentsline {subsection}{\numberline {15.5.2}Stale RTDB Commands}{78}{subsection.15.5.2}%
+\contentsline {chapter}{\numberline {16}Operations Runbook}{79}{chapter.16}%
+\contentsline {section}{\numberline {16.1}New Coordinator Handover}{79}{section.16.1}%
+\contentsline {section}{\numberline {16.2}Semester Transition Checklist}{79}{section.16.2}%
+\contentsline {section}{\numberline {16.3}Daily, Weekly, Monthly Work}{80}{section.16.3}%
+\contentsline {section}{\numberline {16.4}Master Key Rotation Runbook}{80}{section.16.4}%
+\contentsline {section}{\numberline {16.5}Lost Card Procedure}{81}{section.16.5}%
+\contentsline {section}{\numberline {16.6}Compromised Coordinator Procedure}{81}{section.16.6}%
+\contentsline {section}{\numberline {16.7}Disaster Recovery Summary}{81}{section.16.7}%
+\contentsline {chapter}{\numberline {17}Troubleshooting}{82}{chapter.17}%
+\contentsline {section}{\numberline {17.1}Quick Diagnostic Reference}{82}{section.17.1}%
+\contentsline {section}{\numberline {17.2}Serial Monitor Diagnostic Commands}{82}{section.17.2}%
+\contentsline {section}{\numberline {17.3}Common Issues}{83}{section.17.3}%
+\contentsline {subsection}{\numberline {17.3.1}RFID Authentication Failure}{83}{subsection.17.3.1}%
+\contentsline {subsection}{\numberline {17.3.2}Schema Version Mismatch}{83}{subsection.17.3.2}%
+\contentsline {subsection}{\numberline {17.3.3}Bridge PERMISSION\_DENIED on Firestore}{83}{subsection.17.3.3}%
+\contentsline {subsection}{\numberline {17.3.4}WiFi RSSI Too Low}{84}{subsection.17.3.4}%
+\contentsline {section}{\numberline {17.4}Recovery Procedures}{84}{section.17.4}%
+\contentsline {chapter}{\numberline {18}Future Improvements}{85}{chapter.18}%
+\contentsline {section}{\numberline {18.1}Planned (Phase 4)}{85}{section.18.1}%
+\contentsline {subsection}{\numberline {18.1.1}PIN Verification at Machine}{85}{subsection.18.1.1}%
+\contentsline {section}{\numberline {18.2}Recommended (Near-term)}{85}{section.18.2}%
+\contentsline {subsection}{\numberline {18.2.1}MQTT Authentication and ACLs}{85}{subsection.18.2.1}%
+\contentsline {subsection}{\numberline {18.2.2}Session Booking / Reservation}{85}{subsection.18.2.2}%
+\contentsline {subsection}{\numberline {18.2.3}Analytics Dashboard}{86}{subsection.18.2.3}%
+\contentsline {subsection}{\numberline {18.2.4}Card Expiry}{86}{subsection.18.2.4}%
+\contentsline {section}{\numberline {18.3}Long-term Considerations}{86}{section.18.3}%
+\contentsline {subsection}{\numberline {18.3.1}Multi-Lab Deployment}{86}{subsection.18.3.1}%
+\contentsline {subsection}{\numberline {18.3.2}Replacing Firebase with Self-Hosted Backend}{86}{subsection.18.3.2}%
+\contentsline {subsection}{\numberline {18.3.3}Hardware Iterations}{87}{subsection.18.3.3}%
+\contentsline {section}{\numberline {18.4}Known Limitations to Address}{87}{section.18.4}%
+\contentsline {chapter}{\numberline {A}GPIO Pin Mappings}{88}{appendix.A}%
+\contentsline {section}{\numberline {A.1}Complete ESP32 GPIO Assignment Table}{88}{section.A.1}%
+\contentsline {section}{\numberline {A.2}SPI Bus Sharing}{89}{section.A.2}%
+\contentsline {section}{\numberline {A.3}I2C Bus}{90}{section.A.3}%
+\contentsline {chapter}{\numberline {B}MQTT Topic Reference}{91}{appendix.B}%
+\contentsline {section}{\numberline {B.1}Topic Naming Convention}{91}{section.B.1}%
+\contentsline {section}{\numberline {B.2}Topic Details}{91}{section.B.2}%
+\contentsline {subsection}{\numberline {B.2.1}\texttt {mms/nodes/\{id\}/status}}{91}{subsection.B.2.1}%
+\contentsline {subsection}{\numberline {B.2.2}\texttt {mms/nodes/\{id\}/event}}{92}{subsection.B.2.2}%
+\contentsline {subsection}{\numberline {B.2.3}\texttt {mms/nodes/\{id\}/heartbeat}}{92}{subsection.B.2.3}%
+\contentsline {subsection}{\numberline {B.2.4}\texttt {mms/nodes/\{id\}/command}}{92}{subsection.B.2.4}%
+\contentsline {subsection}{\numberline {B.2.5}\texttt {mms/nodes/\{id\}/config}}{93}{subsection.B.2.5}%
+\contentsline {subsection}{\numberline {B.2.6}\texttt {mms/all/revoked}}{93}{subsection.B.2.6}%
+\contentsline {section}{\numberline {B.3}Subscribing to Topics for Debugging}{93}{section.B.3}%
+\contentsline {chapter}{\numberline {C}Firestore Schema Reference}{94}{appendix.C}%
+\contentsline {section}{\numberline {C.1}Collection Overview}{94}{section.C.1}%
+\contentsline {section}{\numberline {C.2}/users/\{roll\_number\}}{94}{section.C.2}%
+\contentsline {section}{\numberline {C.3}/machines/\{machine\_id\}}{95}{section.C.3}%
+\contentsline {section}{\numberline {C.4}/sessions/\{auto\_id\}}{95}{section.C.4}%
+\contentsline {section}{\numberline {C.5}/revoked/\{card\_uid\}}{95}{section.C.5}%
+\contentsline {section}{\numberline {C.6}Firestore Composite Indexes}{96}{section.C.6}%
+\contentsline {chapter}{\numberline {D}Realtime Database Schema Reference}{97}{appendix.D}%
+\contentsline {section}{\numberline {D.1}Full RTDB Tree}{97}{section.D.1}%
+\contentsline {section}{\numberline {D.2}Node State Values}{98}{section.D.2}%
+\contentsline {section}{\numberline {D.3}Command Lifecycle}{98}{section.D.3}%
+\contentsline {section}{\numberline {D.4}RTDB Security Rules}{98}{section.D.4}%
+\contentsline {chapter}{\numberline {E}Machine Registry}{100}{appendix.E}%
+\contentsline {section}{\numberline {E.1}Canonical Machine Table}{100}{section.E.1}%
+\contentsline {section}{\numberline {E.2}Three-Places-in-Sync Rule}{100}{section.E.2}%
+\contentsline {subsection}{\numberline {E.2.1}1. \texttt {v2/access\_node/config.h}}{100}{subsection.E.2.1}%
+\contentsline {subsection}{\numberline {E.2.2}2. \texttt {v2/scripts/seed\_machines.py}}{101}{subsection.E.2.2}%
+\contentsline {subsection}{\numberline {E.2.3}3. \texttt {v2/kiosk\_station/config.py}}{101}{subsection.E.2.3}%
+\contentsline {section}{\numberline {E.3}Adding a New Machine}{101}{section.E.3}%
+\contentsline {chapter}{\numberline {F}Bill of Materials}{103}{appendix.F}%
+\contentsline {section}{\numberline {F.1}Per-Node Components}{103}{section.F.1}%
+\contentsline {section}{\numberline {F.2}Infrastructure Components (One-time)}{104}{section.F.2}%
+\contentsline {section}{\numberline {F.3}Kiosk Station Components}{105}{section.F.3}%
+\contentsline {section}{\numberline {F.4}Total Cost Estimate}{105}{section.F.4}%
+\contentsline {chapter}{\numberline {G}Wiring Diagrams}{106}{appendix.G}%
+\contentsline {section}{\numberline {G.1}Node Wiring Overview}{106}{section.G.1}%
+\contentsline {section}{\numberline {G.2}Canonical Pin Table}{106}{section.G.2}%
+\contentsline {section}{\numberline {G.3}Power Distribution}{107}{section.G.3}%
+\contentsline {section}{\numberline {G.4}Interface-Specific Notes}{107}{section.G.4}%
+\contentsline {chapter}{\numberline {H}OTA Update Procedures}{109}{appendix.H}%
+\contentsline {section}{\numberline {H.1}OTA Architecture}{109}{section.H.1}%
+\contentsline {section}{\numberline {H.2}OTA Update Procedure}{109}{section.H.2}%
+\contentsline {subsection}{\numberline {H.2.1}Step 1: Build the Firmware}{109}{subsection.H.2.1}%
+\contentsline {subsection}{\numberline {H.2.2}Step 2: Upload to Firebase Storage}{109}{subsection.H.2.2}%
+\contentsline {subsection}{\numberline {H.2.3}Step 3: Trigger OTA}{110}{subsection.H.2.3}%
+\contentsline {subsection}{\numberline {H.2.4}Step 4: Monitor Progress}{110}{subsection.H.2.4}%
+\contentsline {section}{\numberline {H.3}OTA Rollback}{111}{section.H.3}%
+\contentsline {section}{\numberline {H.4}Manual Flash Recovery}{111}{section.H.4}%
+\contentsline {section}{\numberline {H.5}OTA Safety Checklist}{111}{section.H.5}%
+\contentsline {chapter}{\numberline {I}Card Issuance Procedures}{112}{appendix.I}%
+\contentsline {section}{\numberline {I.1}Overview}{112}{section.I.1}%
+\contentsline {section}{\numberline {I.2}Required Setup}{112}{section.I.2}%
+\contentsline {section}{\numberline {I.3}Issuing a New Card}{112}{section.I.3}%
+\contentsline {section}{\numberline {I.4}Re-issuing a Lost Card}{113}{section.I.4}%
+\contentsline {section}{\numberline {I.5}Re-issuing a Damaged Card (Not Lost)}{113}{section.I.5}%
+\contentsline {section}{\numberline {I.6}Updating Machine Permissions}{113}{section.I.6}%
+\contentsline {section}{\numberline {I.7}Bulk Card Issuance}{113}{section.I.7}%
+\contentsline {section}{\numberline {I.8}Card Stock Management}{114}{section.I.8}%
+\contentsline {section}{\numberline {I.9}Troubleshooting Card Issuance}{114}{section.I.9}%
+\contentsline {chapter}{\numberline {J}Hardware Validation Procedures}{115}{appendix.J}%
+\contentsline {section}{\numberline {J.1}Overview}{115}{section.J.1}%
+\contentsline {section}{\numberline {J.2}Required Tools and Setup}{115}{section.J.2}%
+\contentsline {section}{\numberline {J.3}Execution Order}{116}{section.J.3}%
+\contentsline {section}{\numberline {J.4}Sign-off Sheet}{117}{section.J.4}%
+\contentsline {section}{\numberline {J.5}Common Failure Modes}{117}{section.J.5}%

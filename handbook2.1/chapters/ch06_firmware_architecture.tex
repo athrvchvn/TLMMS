@@ -1,0 +1,232 @@
+%% Chapter 6 — Firmware Architecture
+\chapter{Firmware Architecture}
+\label{ch:firmware}
+
+\section{Firmware Structure}
+
+The access node firmware is located in \texttt{v2/access\_node/}. It is organised as a collection of single-responsibility modules coordinated by a central state machine.
+
+\begin{table}[H]
+\centering
+\caption{Firmware Module Map}
+\label{tab:modules}
+\begin{tabular}{L{4.5cm}L{4.5cm}L{5.5cm}}
+\toprule
+\textbf{Module} & \textbf{Files} & \textbf{Responsibility} \\
+\midrule
+Config & \texttt{config.h} & Machine ID, name, session limit, broker IP \\
+Secrets & \texttt{secrets.h} & WiFi credentials, master key (gitignored) \\
+NVS Manager & \texttt{nvs\_manager.h/.cpp} & Read/write NVS namespace \texttt{mms\_config} \\
+RFID Handler & \texttt{rfid\_handler.h/.cpp} & MFRC522 SPI init; card detect; sector key derivation; block read \\
+Card Schema & \texttt{card\_schema.h/.cpp} & Parse blocks 4+5; validate schema; return \texttt{CardData} struct \\
+Access Control & \texttt{access\_control.h/.cpp} & Revocation list check + permission bitmask check \\
+Relay Controller & \texttt{relay\_controller.h/.cpp} & GPIO abstraction; safe OFF on init \\
+Slot Sensor & \texttt{slot\_sensor.h/.cpp} & HC89 debounced input \\
+Session Manager & \texttt{session\_manager.h/.cpp} & Session start/end/timeout; build log entry JSON \\
+MQTT Client & \texttt{mqtt\_client.h/.cpp} & PubSubClient wrapper; reconnect backoff; command callback \\
+Revocation Cache & \texttt{revocation\_cache.h/.cpp} & LittleFS \texttt{/config/revoked.json}; UID lookup \\
+LittleFS Logger & \texttt{littlefs\_logger.h/.cpp} & JSONL append; rotate at 50KB; flush on connect \\
+Display Primary & \texttt{display\_primary.h/.cpp} & 128$\times$64 SPI OLED; state-driven rendering \\
+Display Status & \texttt{display\_status.h/.cpp} & 128$\times$32 I2C OLED; persistent status strip \\
+LED Controller & \texttt{led\_controller.h/.cpp} & WS2812; non-blocking animations \\
+Watchdog & \texttt{watchdog.h/.cpp} & ESP32 TWDT; 30s timeout; feed in main loop \\
+OTA Handler & \texttt{ota\_handler.h/.cpp} & Version check; \texttt{esp\_https\_ota}; rollback \\
+State Machine & \texttt{state\_machine.h/.cpp} & Central FSM; drives all transitions \\
+Main & \texttt{access\_node.ino} & \texttt{setup()} + \texttt{loop()}; watchdog feed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Firmware State Machine}
+
+The state machine is the central coordinator. All hardware events and MQTT messages cause state transitions. No module changes hardware state directly --- all changes go through the state machine.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=8mm and 9mm]
+\node[state] (boot) {BOOT};
+\node[state, below=of boot] (idle) {IDLE};
+\node[state, below=of idle] (read) {CARD\\READING};
+\node[mmswarn, left=of read] (denied) {ACCESS\\DENIED};
+\node[mmswarn, right=of read] (disabled) {MACHINE\\DISABLED};
+\node[state, below=of read] (active) {SESSION\\ACTIVE};
+\node[mmswarn, below left=of active] (warning) {TIMEOUT\\WARNING};
+\node[mmswarn, below=of warning] (expired) {TIMEOUT\\EXPIRED};
+\node[state, below=of active] (ended) {SESSION\\ENDED};
+\node[state, right=of active] (ota) {OTA\\UPDATE};
+\draw[mmsline] (boot) -- node[right,font=\scriptsize]{init hardware, WiFi, MQTT} (idle);
+\draw[mmsline] (idle) -- node[right,font=\scriptsize]{HC89 card detected} (read);
+\draw[mmsline] (read) -- node[above,font=\scriptsize]{auth/schema/permission fail} (denied);
+\draw[mmsline] (read) -- node[above,font=\scriptsize]{machine inactive} (disabled);
+\draw[mmsline] (read) -- node[right,font=\scriptsize]{permission OK, relay ON} (active);
+\draw[mmsline] (active) -- node[left,font=\scriptsize]{limit - 2 min} (warning);
+\draw[mmsline] (warning) -- node[left,font=\scriptsize]{limit reached} (expired);
+\draw[mmsline] (expired) -| node[below,font=\scriptsize]{relay OFF} (ended);
+\draw[mmsline] (active) -- node[right,font=\scriptsize]{card removed / stop} (ended);
+\draw[mmsline] (ended.west) -- ++(-34mm,0) |- node[pos=0.15,below,font=\scriptsize]{after display timeout} (idle.west);
+\draw[mmsdash] (denied) |- (idle);
+\draw[mmsdash] (disabled) |- (idle);
+\draw[mmsdash] (active) -- node[above,font=\scriptsize]{MQTT OTA} (ota);
+\draw[mmsdash] (ota) |- (boot);
+\end{tikzpicture}
+\caption{Access Node Firmware State Machine}
+\label{fig:state_machine}
+\end{figure}
+
+\section{NVS Configuration}
+
+NVS (Non-Volatile Storage) persists configuration across reboots. The namespace is \texttt{mms\_config}.
+
+\begin{table}[H]
+\centering
+\caption{NVS Configuration Keys}
+\begin{tabular}{L{3.5cm}C{2.5cm}L{3cm}L{5cm}}
+\toprule
+\textbf{Key} & \textbf{Type} & \textbf{Set by} & \textbf{Description} \\
+\midrule
+\texttt{machine\_id}   & uint8   & \texttt{config.h} at flash & 1--32 \\
+\texttt{master\_key}   & blob (32B) & \texttt{secrets.h} at flash & HMAC master secret \\
+\texttt{machine\_name} & string (32) & MQTT config push & Display name; fallback to \texttt{config.h} \\
+\texttt{session\_limit} & uint16 & MQTT config push & Minutes; fallback to \texttt{config.h} \\
+\texttt{relay\_active\_high} & uint8 & MQTT config push & 1=HIGH activates relay; 0=LOW \\
+\texttt{machine\_active} & uint8 & MQTT config push & 0=disabled; all access denied \\
+\texttt{fw\_version}  & string & OTA handler & Current firmware version string \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+On first boot (no NVS data), the firmware uses the fallback values from \texttt{config.h}. On the first MQTT connect, the bridge pushes the Firestore config, which overwrites NVS. On subsequent boots without MQTT connection, NVS values are used.
+
+\section{LittleFS File Layout}
+
+\begin{table}[H]
+\centering
+\caption{LittleFS file layout}
+\begin{tabular}{L{5cm}L{9cm}}
+\toprule
+\textbf{Path} & \textbf{Purpose} \\
+\midrule
+\texttt{/logs/sessions.jsonl} & Append-only offline session event log. \\
+\texttt{/logs/sessions.old.jsonl} & Previous rotation backup; overwritten by the next rotation. \\
+\texttt{/config/revoked.json} & Cached revoked UID list with \texttt{updated\_at} timestamp. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Log rotation:} When \texttt{sessions.jsonl} exceeds 50KB:
+\begin{enumerate}[leftmargin=1.5em]
+    \item Rename \texttt{sessions.jsonl} $\rightarrow$ \texttt{sessions.old.jsonl} (overwrites previous)
+    \item Create new empty \texttt{sessions.jsonl}
+    \item Continue appending
+\end{enumerate}
+
+\textbf{Flush on MQTT connect:}
+\begin{enumerate}[leftmargin=1.5em]
+    \item Open \texttt{sessions.jsonl}
+    \item Read line by line; attempt JSON parse each line
+    \item Discard any line that fails to parse (partial write from power loss)
+    \item Publish each valid line to \texttt{mms/nodes/\{id\}/event} (QoS 1)
+    \item Wait for broker ACK before publishing next
+    \item After all lines published: delete file
+\end{enumerate}
+
+\section{Session Log Entry Format}
+
+Each line in \texttt{sessions.jsonl} is a compact JSON object:
+
+\begin{lstlisting}[style=jsonlstyle,caption={Session log entry format}]
+{"t":1718600000,"r":"220002123","m":3,"e":"session_end",
+ "d":245,"er":"card_removed"}
+\end{lstlisting}
+
+Fields:
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item \texttt{t}: Unix timestamp of session end
+    \item \texttt{r}: Roll number string
+    \item \texttt{m}: Machine ID integer
+    \item \texttt{e}: Event type (\texttt{"session\_end"}, \texttt{"boot"})
+    \item \texttt{d}: Duration in seconds
+    \item \texttt{er}: End reason (\texttt{"card\_removed"}, \texttt{"timeout"}, \texttt{"remote\_stop"}, \texttt{"watchdog"})
+\end{itemize}
+
+\section{Display Content}
+
+\subsection{Primary OLED (128$\times$64)}
+
+\begin{table}[H]
+\centering
+\caption{Primary Display Content by State}
+\begin{tabular}{L{4cm}L{10.5cm}}
+\toprule
+\textbf{State} & \textbf{Display content} \\
+\midrule
+IDLE & ``Tinkerers' Lab / IIT Indore'' + machine name + ``Tap card to start'' \\
+CARD\_READING & ``Reading card...'' + spinner animation \\
+ACCESS\_DENIED & ``!! Access Denied !!'' + reason + roll number (clears after 3s) \\
+MACHINE\_DISABLED & ``Machine Offline'' + ``Contact admin'' \\
+SESSION\_ACTIVE & Roll number + machine name + ``Time: MM:SS / HH:MM'' \\
+TIMEOUT\_WARNING & ``!! 2 min left !!'' + ``Remove card soon'' + roll number \\
+SESSION\_ENDED & ``Session Complete'' + roll + duration + ``Thank you!'' \\
+OTA\_UPDATE & ``Updating FW...'' + version + progress percentage + ``Do not remove'' \\
+ERROR & ``System Error'' + error code + ``Restarting...'' \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Status Strip OLED (128$\times$32)}
+
+Always shows:
+\begin{table}[H]
+\centering
+\caption{Status strip layout}
+\begin{tabular}{L{4cm}L{10cm}}
+\toprule
+\textbf{Region} & \textbf{Content} \\
+\midrule
+Left indicators & WiFi and MQTT symbols; filled when connected and empty when disconnected. \\
+Center text & Machine name from NVS or Firestore config push. \\
+Right text & Current time after NTP sync. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{WS2812 LED State Map}
+
+\begin{table}[H]
+\centering
+\caption{LED Colour and Pattern per State}
+\begin{tabular}{L{3.5cm}L{3cm}L{7cm}}
+\toprule
+\textbf{State} & \textbf{Colour} & \textbf{Pattern} \\
+\midrule
+IDLE & White (dim) & Slow breathe, 2s period \\
+CARD\_READING & Cyan & Fast blink, 200ms \\
+SESSION\_ACTIVE & Green & Solid \\
+TIMEOUT\_WARNING & Yellow $\leftrightarrow$ Orange & Alternate, 1s \\
+TIMEOUT\_EXPIRED & Red & Solid (500ms) \\
+ACCESS\_DENIED & Red & 3$\times$ quick flash then off \\
+MACHINE\_DISABLED & Purple & Solid dim \\
+OTA\_UPDATE & Blue & Chasing animation \\
+ERROR & Red & Solid \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Watchdog}
+
+The hardware watchdog is the last line of defence against firmware hangs:
+
+\begin{lstlisting}[language=C,caption={Watchdog initialisation in setup()}]
+esp_task_wdt_init(30, true);  // 30s timeout, panic on trigger
+esp_task_wdt_add(NULL);       // watch the main task
+\end{lstlisting}
+
+\begin{lstlisting}[language=C,caption={Watchdog feed in main loop}]
+void loop() {
+    esp_task_wdt_reset();   // must be called at least every 30s
+    stateMachine.tick();
+    // ...
+}
+\end{lstlisting}
+
+If \texttt{loop()} takes longer than 30 seconds (e.g., blocking I2C, infinite RFID retry), the TWDT triggers a panic and the ESP32 reboots. The boot reason is available via \texttt{esp\_reset\_reason()} on the next boot.

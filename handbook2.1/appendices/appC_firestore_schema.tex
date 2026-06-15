@@ -1,0 +1,125 @@
+%% Appendix C — Firestore Schema Reference
+\chapter{Firestore Schema Reference}
+\label{app:firestore_schema}
+
+\section{Collection Overview}
+
+\begin{table}[H]
+\centering
+\caption{Firestore Collections}
+\begin{tabular}{L{3.5cm}L{3.5cm}L{8cm}}
+\toprule
+\textbf{Collection} & \textbf{Document ID} & \textbf{Purpose} \\
+\midrule
+\texttt{/users} & Roll number (9 digits) & Student profile, card UID, permissions, PIN hash \\
+\texttt{/machines} & Machine ID (``1'' to ``5'') & Machine config: name, session limit, relay type, active state \\
+\texttt{/sessions} & Auto-generated & Completed session records (permanent log) \\
+\texttt{/revoked} & Card UID hex string & Revoked RFID card records \\
+\texttt{/admins} & Firebase Auth UID & Admin user records \\
+\texttt{/super\_admins} & Firebase Auth UID & Super admin records \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{/users/\{roll\_number\}}
+
+\begin{longtable}{L{4cm}L{2.5cm}L{8cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{roll\_number} & string & 9-digit roll number; same as document ID \\
+\texttt{name} & string & Student full name \\
+\texttt{email} & string & Institute email address \\
+\texttt{pin\_hash} & string & HMAC-SHA256 PIN hash, truncated to 8 bytes (16 hex chars) \\
+\texttt{card\_uid} & string & RFID card UID as uppercase hex (e.g., ``A1B2C3D4'') \\
+\texttt{machine\_permissions} & number & uint32 bitmask; bit N-1 = machine N access \\
+\texttt{issued\_at} & timestamp & When the card was issued \\
+\texttt{issued\_by} & string & Firebase Auth UID of the admin who issued the card \\
+\texttt{is\_active} & boolean & \texttt{false} = deactivated student (access denied even with valid card) \\
+\texttt{last\_seen} & timestamp & Set by bridge when a session ends for this student \\
+\bottomrule
+\caption{/users collection fields}
+\end{longtable}
+
+\section{/machines/\{machine\_id\}}
+
+\begin{longtable}{L{4.5cm}L{2.5cm}L{7.5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{name} & string & Display name (e.g., ``Soldering Station 1'') \\
+\texttt{session\_limit\_minutes} & number & Maximum session duration in minutes \\
+\texttt{relay\_active\_high} & boolean & \texttt{true} = GPIO HIGH energises relay; \texttt{false} = GPIO LOW \\
+\texttt{machine\_active} & boolean & \texttt{false} = machine admin-disabled; all access denied \\
+\texttt{location} & string & Physical zone (e.g., ``Zone C'') \\
+\texttt{created\_at} & timestamp & When this document was created \\
+\bottomrule
+\caption{/machines collection fields}
+\end{longtable}
+
+\section{/sessions/\{auto\_id\}}
+
+\begin{longtable}{L{3.5cm}L{2.5cm}L{8.5cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{machine\_id} & string & Machine ID as string (``1'' to ``5'') \\
+\texttt{machine\_name} & string & Machine name at time of session (denormalised for query convenience) \\
+\texttt{roll\_number} & string & Student roll number \\
+\texttt{user\_name} & string & Student name at time of session (denormalised) \\
+\texttt{start\_time} & timestamp & Session start time (UTC) \\
+\texttt{end\_time} & timestamp\,|\,null & Session end time; \texttt{null} for active sessions \\
+\texttt{duration\_s} & number\,|\,null & Session duration in seconds; \texttt{null} for active sessions \\
+\texttt{end\_reason} & string\,|\,null & Why session ended; see valid values below \\
+\texttt{status} & string & ``active'' or ``completed'' \\
+\bottomrule
+\caption{/sessions collection fields}
+\end{longtable}
+
+Valid \texttt{end\_reason} values:
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item \texttt{card\_removed}: student removed card from slot
+    \item \texttt{timeout}: session exceeded limit; node ended session
+    \item \texttt{remote\_stop}: admin issued stop command via dashboard
+    \item \texttt{power\_loss}: node rebooted during active session (end time estimated)
+    \item \texttt{watchdog}: 30s hardware watchdog triggered during session
+\end{itemize}
+
+\section{/revoked/\{card\_uid\}}
+
+\begin{longtable}{L{3cm}L{2.5cm}L{9cm}}
+\toprule
+\textbf{Field} & \textbf{Type} & \textbf{Description} \\
+\midrule
+\endhead
+\texttt{uid} & string & Card UID hex string (same as document ID) \\
+\texttt{roll\_number} & string & Roll number of the student this card was issued to \\
+\texttt{revoked\_at} & timestamp & When the card was revoked \\
+\texttt{revoked\_by} & string & Firebase Auth UID of admin who revoked the card \\
+\texttt{reason} & string & ``lost'', ``stolen'', or ``expired'' \\
+\bottomrule
+\caption{/revoked collection fields}
+\end{longtable}
+
+\section{Firestore Composite Indexes}
+
+Three composite indexes are required on the \texttt{sessions} collection:
+
+\begin{table}[H]
+\centering
+\caption{Required Firestore Composite Indexes}
+\begin{tabular}{L{3.5cm}L{4.5cm}L{6.5cm}}
+\toprule
+\textbf{Collection} & \textbf{Fields} & \textbf{Purpose} \\
+\midrule
+sessions & machine\_id ASC, start\_time DESC & Per-machine session history \\
+sessions & roll\_number ASC, start\_time DESC & Per-student session history \\
+sessions & status ASC, start\_time ASC & Active session queries and orphan cleanup \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Deploy with: \texttt{firebase deploy --only firestore:indexes}

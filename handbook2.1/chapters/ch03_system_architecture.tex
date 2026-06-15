@@ -1,0 +1,261 @@
+%% Chapter 3 — System Architecture
+\chapter{System Architecture}
+\label{ch:architecture}
+
+\section{Architecture Overview}
+
+MMS V2 uses a three-tier architecture:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{Edge tier}: ESP32 access nodes. One per machine. Physical access control, session timing, display.
+    \item \textbf{Local bridge tier}: Raspberry Pi running Mosquitto (MQTT broker) and \texttt{bridge.py}. Bridges the local MQTT network and Firebase.
+    \item \textbf{Cloud tier}: Firebase (Firestore + RTDB + Storage + Hosting + Auth). Permanent storage, real-time state, web hosting.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=11mm and 11mm]
+\node[mmsedge] (n1) {ESP32 Node 1\\3D Printer};
+\node[mmsedge, right=of n1] (n2) {ESP32 Node 2\\Laser Cutter};
+\node[mmsedge, right=of n2] (n3) {ESP32 Node 3--5\\Soldering, Grinder};
+\node[mmsblock, above=16mm of n2, text width=42mm] (rpi) {Raspberry Pi\\Mosquitto broker\\\texttt{bridge.py} systemd\\192.168.0.10};
+\node[mmscloud, above=16mm of rpi, text width=48mm] (fb) {Firebase\\Firestore + RTDB\\Storage + Hosting + Auth};
+\node[mmsblock, right=20mm of fb] (web) {React dashboard\\coordinators};
+\node[mmsblock, left=20mm of rpi] (kiosk) {Kiosk station\\card issuer};
+\draw[mmsline] (n1) -- node[left,font=\scriptsize]{MQTT/LAN} (rpi);
+\draw[mmsline] (n2) -- (rpi);
+\draw[mmsline] (n3) -- (rpi);
+\draw[mmsline] (rpi) -- node[right,font=\scriptsize]{Admin SDK + REST} (fb);
+\draw[mmsline] (web) -- node[above,font=\scriptsize]{HTTPS} (fb);
+\draw[mmsdash] (kiosk) -- node[above,font=\scriptsize]{Firestore user data} (fb);
+\draw[mmsdash] (kiosk) -- node[below,font=\scriptsize]{writes cards} (n1);
+\end{tikzpicture}
+\caption{MMS V2 System Architecture}
+\label{fig:architecture}
+\end{figure}
+
+\section{C4-Style System Context}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=12mm and 15mm]
+\node[mmsblock] (student) {Student\\RFID card};
+\node[mmsblock, below=of student] (coord) {Coordinator\\dashboard};
+\node[mmscloud, right=18mm of student, text width=43mm] (system) {MMS V2\\access control and usage logging};
+\node[mmsedge, right=18mm of system] (machine) {Workshop machines\\relay controlled};
+\node[mmscloud, below=of system] (firebase) {Firebase project\\identity, live state, records};
+\draw[mmsline] (student) -- node[above,font=\scriptsize]{requests access} (system);
+\draw[mmsline] (coord) -- node[below,font=\scriptsize]{admin commands} (system);
+\draw[mmsline] (system) -- node[above,font=\scriptsize]{enables power} (machine);
+\draw[mmsline] (system) -- node[right,font=\scriptsize]{logs/syncs} (firebase);
+\draw[mmsline] (firebase) -- (coord);
+\end{tikzpicture}
+\caption{System context diagram}
+\label{fig:system_context}
+\end{figure}
+
+\section{Communication Paths}
+
+\subsection{Access Decision (Offline-capable)}
+
+The access decision path requires no network:
+\begin{enumerate}[leftmargin=1.5em]
+    \item HC89 slot sensor detects card insertion
+    \item MFRC522 reads card UID
+    \item ESP32 derives sector key: $\text{HMAC-SHA256}(\text{master\_key},\, \text{uid\_hex})[0..5]$
+    \item ESP32 authenticates Sector 1, reads Blocks 4 and 5
+    \item ESP32 checks UID against LittleFS revocation list
+    \item ESP32 checks permission bitmask: $(perm\_mask \gg (machine\_id - 1)) \& 1$
+    \item If all checks pass: relay ON, session starts
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=8mm]
+\node[state] (slot) {Card inserted};
+\node[state, below=of slot] (read) {Read UID and Sector 1};
+\node[decision, below=of read] (auth) {Auth\\OK?};
+\node[decision, below left=11mm and 18mm of auth] (rev) {UID\\revoked?};
+\node[decision, below right=11mm and 18mm of auth] (perm) {Permission\\bit set?};
+\node[mmswarn, below=18mm of rev] (deny) {Deny access\\log reason};
+\node[mmsedge, below=18mm of perm] (grant) {Relay ON\\start session};
+\draw[mmsline] (slot) -- (read);
+\draw[mmsline] (read) -- (auth);
+\draw[mmsline] (auth) -- node[left,font=\scriptsize]{yes} (rev);
+\draw[mmsline] (auth) -- node[right,font=\scriptsize]{yes} (perm);
+\draw[mmsline] (auth.east) -- ++(18mm,0) |- node[pos=0.2,above,font=\scriptsize]{no} (deny.east);
+\draw[mmsline] (rev) -- node[left,font=\scriptsize]{yes} (deny);
+\draw[mmsline] (rev) -- node[above,font=\scriptsize]{no} (perm);
+\draw[mmsline] (perm) -- node[right,font=\scriptsize]{yes} (grant);
+\draw[mmsline] (perm) -- node[above,font=\scriptsize]{no} (deny);
+\end{tikzpicture}
+\caption{Offline access validation flow}
+\label{fig:access_validation_flow}
+\end{figure}
+
+\subsection{Session Event Flow}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Session ends (card removed, timeout, or remote stop)
+    \item ESP32 builds JSON event: \texttt{\{ts, roll, machine\_id, event, duration\_s, end\_reason\}}
+    \item If MQTT connected: publish to \texttt{mms/nodes/\{id\}/event} (QoS 1)
+    \item If MQTT disconnected: append to LittleFS \texttt{/logs/sessions.jsonl}; publish on next connect
+    \item bridge.py receives event via MQTT subscription
+    \item bridge.py checks Firestore for duplicate (±5s deduplication window)
+    \item bridge.py writes session to Firestore \texttt{/sessions} collection
+    \item bridge.py updates \texttt{/users/\{roll\}/last\_seen}
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=8mm and 12mm]
+\node[mmsedge] (esp) {ESP32\\session ends};
+\node[mmsblock, right=of esp] (mqtt) {MQTT broker\\QoS 1};
+\node[mmsblock, right=of mqtt] (bridge) {bridge.py\\deduplicate};
+\node[mmscloud, right=of bridge] (fs) {Firestore\\\texttt{/sessions}};
+\node[mmswarn, below=of mqtt] (fsbuf) {LittleFS\\offline buffer};
+\draw[mmsline] (esp) -- node[above,font=\scriptsize]{online} (mqtt);
+\draw[mmsline] (mqtt) -- (bridge);
+\draw[mmsline] (bridge) -- (fs);
+\draw[mmsdash] (esp) -- node[left,font=\scriptsize]{offline} (fsbuf);
+\draw[mmsdash] (fsbuf) -- node[right,font=\scriptsize]{flush on reconnect} (mqtt);
+\end{tikzpicture}
+\caption{Session logging and offline sync path}
+\label{fig:session_sync_flow}
+\end{figure}
+
+\subsection{Remote Stop Flow}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Admin clicks Stop in web dashboard
+    \item Web app writes to RTDB \texttt{/mms/commands/\{id\}}: \texttt{\{command:"stop", timestamp:now\}}
+    \item bridge.py \texttt{onValue} listener triggers
+    \item bridge.py checks command age: if $>$300s, discard and acknowledge
+    \item bridge.py publishes to \texttt{mms/nodes/\{id\}/command} (QoS 1)
+    \item ESP32 MQTT callback receives command
+    \item ESP32 checks command timestamp: if $>$300s old, discard
+    \item ESP32 turns relay OFF, logs end\_reason: \texttt{remote\_stop}
+    \item ESP32 publishes session event; acknowledges command to RTDB
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=8mm and 10mm]
+\node[mmsblock] (admin) {Admin clicks\\Stop};
+\node[mmscloud, right=of admin] (rtdb) {RTDB command\\\texttt{/mms/commands/id}};
+\node[mmsblock, right=of rtdb] (bridge) {bridge.py\\age check};
+\node[mmsblock, right=of bridge] (mqtt) {MQTT command};
+\node[mmsedge, right=of mqtt] (node) {ESP32\\relay OFF};
+\node[mmscloud, below=of bridge] (ack) {RTDB ack\\session event};
+\draw[mmsline] (admin) -- (rtdb);
+\draw[mmsline] (rtdb) -- (bridge);
+\draw[mmsline] (bridge) -- (mqtt);
+\draw[mmsline] (mqtt) -- (node);
+\draw[mmsline] (node) |- (ack);
+\draw[mmsline] (ack) -| (admin);
+\end{tikzpicture}
+\caption{Remote stop command path}
+\label{fig:remote_stop_flow}
+\end{figure}
+
+\subsection{Revocation Flow}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Admin marks card as lost in web app
+    \item Web app creates \texttt{/revoked/\{uid\}} in Firestore
+    \item bridge.py Firestore \texttt{onSnapshot} triggers
+    \item bridge.py rebuilds revocation list from all \texttt{/revoked} documents
+    \item bridge.py publishes \texttt{mms/all/revoked} (retained, QoS 1): \texttt{\{uids:[...], updated\_at:ts\}}
+    \item All connected nodes receive the update; update LittleFS \texttt{/config/revoked.json}
+    \item On next card tap: UID checked against revocation list $\rightarrow$ denied
+    \item Offline nodes: receive update on reconnect (retained message delivered automatically)
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=8mm and 12mm]
+\node[mmsblock] (web) {Dashboard\\revoke card};
+\node[mmscloud, right=of web] (revoked) {Firestore\\\texttt{/revoked/\{uid\}}};
+\node[mmsblock, right=of revoked] (bridge) {bridge.py\\rebuild list};
+\node[mmsblock, right=of bridge] (mqtt) {Retained MQTT\\\texttt{mms/all/revoked}};
+\node[mmsedge, right=of mqtt] (node) {Nodes update\\LittleFS cache};
+\draw[mmsline] (web) -- (revoked);
+\draw[mmsline] (revoked) -- (bridge);
+\draw[mmsline] (bridge) -- (mqtt);
+\draw[mmsline] (mqtt) -- (node);
+\end{tikzpicture}
+\caption{Card revocation propagation}
+\label{fig:revocation_flow}
+\end{figure}
+
+\subsection{OTA Update Flow}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Super admin uploads \texttt{.bin} to Firebase Storage; copies download URL
+    \item Super admin writes to RTDB \texttt{/mms/ota}: \texttt{\{firmware\_url, target\_version, released\_at\}}
+    \item bridge.py RTDB OTA listener triggers
+    \item bridge.py publishes OTA command to all nodes: \texttt{mms/nodes/+/command}
+    \item ESP32 receives command; transitions to OTA state; relay OFF
+    \item ESP32 calls \texttt{esp\_https\_ota()} with firmware URL
+    \item On success: reboot to new partition; update NVS fw\_version
+    \item On failure: if 3 crashes on new partition $\rightarrow$ rollback to previous partition
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=8mm and 9mm]
+\node[mmsblock] (build) {Build\\\texttt{.bin}};
+\node[mmscloud, right=of build] (storage) {Firebase Storage\\firmware URL};
+\node[mmscloud, right=of storage] (ota) {RTDB\\\texttt{/mms/ota}};
+\node[mmsblock, right=of ota] (bridge) {bridge.py\\publish command};
+\node[mmsedge, below=of ota] (node) {ESP32 OTA\\download, verify, reboot};
+\node[mmswarn, below=of node] (rollback) {Rollback if\\boot fails};
+\draw[mmsline] (build) -- (storage);
+\draw[mmsline] (storage) -- (ota);
+\draw[mmsline] (ota) -- (bridge);
+\draw[mmsline] (bridge) |- (node);
+\draw[mmsdash] (node) -- (rollback);
+\end{tikzpicture}
+\caption{OTA release flow}
+\label{fig:ota_flow}
+\end{figure}
+
+\section{MQTT Topic Map}
+
+\begin{longtable}{L{5cm}L{2.5cm}C{1.5cm}C{1.5cm}L{4.5cm}}
+\toprule
+\textbf{Topic} & \textbf{Publisher} & \textbf{QoS} & \textbf{Retain} & \textbf{Payload} \\
+\midrule
+\endhead
+\texttt{mms/nodes/\{id\}/status} & ESP32 & 1 & Yes & State, roll, session\_start, fw\_version, IP, RSSI \\
+\texttt{mms/nodes/\{id\}/event} & ESP32 & 1 & No & Session event JSON \\
+\texttt{mms/nodes/\{id\}/heartbeat} & ESP32 & 0 & No & \{ts, heap\_free, uptime\_s\} \\
+\texttt{mms/nodes/\{id\}/command} & RPi bridge & 1 & No & \{cmd, issued\_by, ts\} \\
+\texttt{mms/nodes/\{id\}/config} & RPi bridge & 1 & Yes & \{name, session\_limit, relay\_active\_high, machine\_active\} \\
+\texttt{mms/all/revoked} & RPi bridge & 1 & Yes & \{uids:[...], updated\_at\} \\
+\bottomrule
+\caption{MQTT Topic Reference}
+\label{tab:mqtt_topics}
+\end{longtable}
+
+\begin{notebox}
+\textbf{Last Will and Testament (LWT):} Each ESP32 registers an LWT on \texttt{mms/nodes/\{id\}/status} with payload \texttt{\{"state":"offline"\}} (retained). If the node disconnects unexpectedly, the broker publishes this automatically. The bridge detects it and updates the RTDB node state to \texttt{"offline"}, which the dashboard reflects immediately.
+\end{notebox}
+
+\section{Offline Degradation Table}
+
+\begin{table}[H]
+\centering
+\caption{System Behaviour When Components Are Unavailable}
+\begin{tabular}{L{4cm}L{6cm}L{4.5cm}}
+\toprule
+\textbf{Unavailable component} & \textbf{Impact on access control} & \textbf{Impact on logging} \\
+\midrule
+WiFi (node disconnected) & No impact. Card access continues. & Sessions buffered in LittleFS; flushed on reconnect \\
+Raspberry Pi down & No impact. Access decisions are local. & Sessions buffered; flushed when RPi recovers \\
+Firebase down & No impact. & bridge.py buffers events in memory; written when Firebase recovers \\
+RFID reader (hardware fault) & No card reads possible. Node logs error. & No sessions started. \\
+Relay (hardware fault) & Machine may not respond to access grant. & Sessions still logged. \\
+\bottomrule
+\end{tabular}
+\end{table}

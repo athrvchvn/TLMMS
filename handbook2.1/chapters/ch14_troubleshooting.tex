@@ -1,0 +1,115 @@
+%% Chapter 14 — Troubleshooting
+\chapter{Troubleshooting}
+\label{ch:troubleshooting}
+
+\section{Quick Diagnostic Reference}
+
+\begin{table}[H]
+\centering
+\caption{Symptom to First Action}
+\begin{tabular}{L{5.5cm}L{9cm}}
+\toprule
+\textbf{Symptom} & \textbf{First action} \\
+\midrule
+OLED blank & Check 3.3V on OLED VCC; flash test sketch 04 or 05 \\
+Card inserted, no reaction & Flash \texttt{06\_hc89}; confirm HC89 OUT wired to GPIO 32 \\
+Card denied (should be allowed) & Check serial for denial reason; verify permissions in Firestore \\
+Relay doesn't energise & Check relay LED; measure GPIO 26 with multimeter during session \\
+MQTT keeps reconnecting & Check Mosquitto status on RPi; confirm MQTT\_BROKER IP \\
+Sessions missing from Firestore & Check bridge logs; curl bridge health endpoint \\
+Dashboard shows offline & Check node MQTT; check bridge health; check RTDB subscription in web app \\
+Remote stop not working & Check RTDB /mms/commands; check bridge logs; check 5-min TTL \\
+OTA stuck & Check Firebase Storage URL; check bridge OTA listener in logs \\
+Node rebooting in loop & Check serial for boot reason; watchdog or OTA crash rollback \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Serial Monitor Diagnostic Commands}
+
+When a node is connected via USB, its Serial Monitor (115200 baud) provides the most direct diagnostic information:
+
+\begin{table}[H]
+\centering
+\caption{Diagnostic Log Prefixes}
+\begin{tabular}{L{2.5cm}L{11cm}}
+\toprule
+\textbf{Prefix} & \textbf{Meaning} \\
+\midrule
+\texttt{[HW]} & Hardware initialisation events (boot only) \\
+\texttt{[NET]} & WiFi connection events \\
+\texttt{[MQTT]} & MQTT connection, publish, subscribe, receive events \\
+\texttt{[RFID]} & Card detection and read events \\
+\texttt{[ACCESS]} & Access grant or denial with reason \\
+\texttt{[RELAY]} & Relay state changes \\
+\texttt{[SESSION]} & Session start, end, timeout events \\
+\texttt{[FS]} & LittleFS operations \\
+\texttt{[NVS]} & NVS reads and writes \\
+\texttt{[OTA]} & OTA update progress \\
+\texttt{[SYS]} & System events: boot reason, watchdog, state transitions \\
+\texttt{[ERR]} & Error conditions \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Common Issues}
+
+\subsection{RFID Authentication Failure}
+
+\begin{verbatim}
+[RFID] Auth FAILED for UID: A1B2C3D4
+\end{verbatim}
+
+\textbf{Causes:}
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item Card written with a different master key than what is in \texttt{secrets.h}
+    \item Card is not MIFARE Classic 1K (NFC tags, bank cards, transit cards fail)
+    \item Card is a fresh/blank card with default Key A (\texttt{0xFFFFFFFFFFFF}) but the node tries the derived key first
+\end{itemize}
+
+\textbf{Fix}: Verify the master key is identical in all three locations. For fresh cards: the kiosk writes the derived key --- node should then authenticate with the derived key. If a card was written by a different kiosk (different master key), it cannot be read by this node.
+
+\subsection{Schema Version Mismatch}
+
+\begin{verbatim}
+[RFID] Schema version: 0x01 (expected 0x02) — ACCESS DENIED
+\end{verbatim}
+
+\textbf{Cause}: Card was issued by V1 kiosk (old system).
+
+\textbf{Fix}: Re-issue the card at the V2 kiosk.
+
+\subsection{Bridge PERMISSION\_DENIED on Firestore}
+
+\begin{verbatim}
+[FIREBASE] Error writing session: 403 PERMISSION_DENIED
+\end{verbatim}
+
+\textbf{Cause}: The service account used by bridge.py does not have Firebase Admin SDK permissions.
+
+\textbf{Fix}: Firebase Console $\rightarrow$ IAM $\rightarrow$ check the service account has ``Firebase Admin'' or ``Editor'' role. The service account email is shown in the \texttt{service-account.json} file.
+
+\subsection{WiFi RSSI Too Low}
+
+\begin{verbatim}
+[NET] WiFi connected — IP: 192.168.0.101, RSSI: -84 dBm
+\end{verbatim}
+
+\textbf{Cause}: Node is too far from the WiFi AP.
+
+\textbf{Impact}: Intermittent MQTT disconnects; sessions buffered in LittleFS but may not flush promptly.
+
+\textbf{Fix}: Add a WiFi access point or range extender nearer to the machine. Acceptable RSSI: $>-80$ dBm. Ideal: $>-67$ dBm.
+
+\section{Recovery Procedures}
+
+See the Deployment Package (Section 16) for complete disaster recovery procedures covering:
+\begin{itemize}[leftmargin=1.5em,noitemsep]
+    \item Raspberry Pi hardware failure
+    \item Firebase outage
+    \item ESP32 hardware failure
+    \item Lost master key
+    \item Corrupted firmware (all nodes)
+    \item Lost Firebase admin access
+    \item Database corruption
+\end{itemize}

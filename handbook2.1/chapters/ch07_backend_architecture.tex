@@ -1,0 +1,230 @@
+%% Chapter 7 -- Backend Architecture (RPi Bridge)
+\chapter{Backend Architecture}
+\label{ch:backend}
+
+\section{Raspberry Pi Role}
+
+The Raspberry Pi is the communication hub between the local MQTT network and Firebase cloud. It runs two services:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Mosquitto}: MQTT message broker; all ESP32 nodes connect to it
+    \item \textbf{bridge.py}: Python service that subscribes to MQTT topics and synchronises data with Firebase
+\end{itemize}
+
+The RPi is connected via Ethernet to the lab router and must have a static IP address (192.168.0.10 by default).
+
+\section{Mosquitto Configuration}
+
+Mosquitto is configured in \texttt{/etc/mosquitto/conf.d/mms.conf}:
+
+\begin{lstlisting}[caption={Mosquitto configuration file}]
+listener 1883 0.0.0.0
+allow_anonymous true          # change to false after adding auth
+persistence true
+persistence_location /var/lib/mosquitto/
+log_dest syslog
+log_type all
+log_timestamp true
+max_connections 50
+max_queued_messages 1000
+\end{lstlisting}
+
+Key settings:
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Persistence}: Retained messages (config push, revocation list, node status) survive broker restarts. Nodes reconnecting after a broker restart immediately receive their current config and revocation list.
+    \item \textbf{max\_connections}: 50 is sufficient for 15 nodes + 1 bridge + 5 admin tools.
+    \item \textbf{allow\_anonymous}: Set to \texttt{true} during initial deployment. Should be changed to \texttt{false} with password authentication after all nodes are confirmed working. See Section~\ref{sec:mqtt_auth}.
+\end{itemize}
+
+\section{bridge.py Architecture}
+
+\texttt{bridge.py} is a single-process Python script that runs the following listeners concurrently using Paho MQTT's event loop and Firebase SDK callbacks:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{MQTT subscriber: \texttt{mms/nodes/+/event}} $\rightarrow$ write session to Firestore
+    \item \textbf{MQTT subscriber: \texttt{mms/nodes/+/status}} $\rightarrow$ update RTDB node state
+    \item \textbf{RTDB listener: \texttt{/mms/commands/\{id\}}} $\rightarrow$ forward commands to MQTT
+    \item \textbf{RTDB listener: \texttt{/mms/ota}} $\rightarrow$ broadcast OTA command to all nodes
+    \item \textbf{Firestore listener: \texttt{/machines/*}} $\rightarrow$ push config to nodes via retained MQTT
+    \item \textbf{Firestore listener: \texttt{/revoked}} $\rightarrow$ push revocation list to \texttt{mms/all/revoked}
+    \item \textbf{Periodic sweep (every 10 min)} $\rightarrow$ clean up stale unacknowledged RTDB commands
+\end{enumerate}
+
+\section{Session Event Processing}
+
+When bridge.py receives an event on \texttt{mms/nodes/\{id\}/event}:
+
+\begin{lstlisting}[language=Python,caption={Session event handler in bridge.py (simplified)}]
+def on_event(client, userdata, message):
+    event = json.loads(message.payload)
+    machine_id = extract_machine_id(message.topic)
+
+    # Deduplication: check for existing session within +/-5s
+    start_ts = event["t"] - event["d"]
+    existing = db.collection("sessions") \
+        .where("machine_id", "==", str(machine_id)) \
+        .where("start_time", ">=", datetime.fromtimestamp(start_ts - 5)) \
+        .where("start_time", "<=", datetime.fromtimestamp(start_ts + 5)) \
+        .limit(1).get()
+
+    if existing:
+        logger.info(f"Duplicate session detected -- skipping")
+        return
+
+    # Get user info from Firestore
+    user_doc = db.collection("users").document(event["r"]).get()
+    user_name = user_doc.get("name") if user_doc.exists else "Unknown"
+
+    # Write session record
+    session = {
+        "machine_id":   str(machine_id),
+        "roll_number":  event["r"],
+        "user_name":    user_name,
+        "start_time":   datetime.fromtimestamp(event["t"] - event["d"]),
+        "end_time":     datetime.fromtimestamp(event["t"]),
+        "duration_s":   event["d"],
+        "end_reason":   event["er"],
+        "status":       "completed",
+    }
+    db.collection("sessions").add(session)
+
+    # Update user last_seen
+    db.collection("users").document(event["r"]).update(
+        {"last_seen": firestore.SERVER_TIMESTAMP}
+    )
+\end{lstlisting}
+
+\section{Command Forwarding}
+
+When bridge.py's RTDB listener fires for a command:
+
+\begin{lstlisting}[language=Python,caption={Command forward handler in bridge.py (simplified)}]
+def on_commands_change(event):
+    machine_id = extract_id_from_path(event.path)
+    data = event.data
+
+    if data is None or "command" not in data:
+        return
+
+    command = data["command"]
+    ts = data.get("timestamp", 0)
+
+    # Stale command check (5-minute TTL)
+    if time.time() - ts > 300:
+        logger.info(f"Stale command for machine {machine_id} -- discarding")
+        rtdb.reference(f"mms/commands/{machine_id}").update({
+            "acknowledged": True,
+            "discarded": True,
+            "reason": "stale_command",
+        })
+        return
+
+    # Forward to node via MQTT
+    payload = json.dumps({"cmd": command, "issued_by": data.get("issued_by"), "ts": ts})
+    mqtt_client.publish(f"mms/nodes/{machine_id}/command", payload, qos=1)
+\end{lstlisting}
+
+\section{Revocation List Management}
+
+The revocation list is maintained in Firestore \texttt{/revoked} collection. When any document is added or removed:
+
+\begin{lstlisting}[language=Python,caption={Revocation push in bridge.py (simplified)}]
+def on_revoked_change(col_snapshot, changes, read_time):
+    # Rebuild full list from snapshot
+    uids = [doc.id for doc in col_snapshot]
+
+    payload = json.dumps({
+        "uids": uids,
+        "updated_at": int(time.time())
+    })
+
+    # Publish retained -- nodes receive it on connect even if offline during update
+    mqtt_client.publish("mms/all/revoked", payload, qos=1, retain=True)
+    logger.info(f"Revocation list pushed: {len(uids)} UID(s)")
+\end{lstlisting}
+
+\section{Systemd Service}
+
+bridge.py runs as a systemd service with automatic restart:
+
+\begin{lstlisting}[caption={/etc/systemd/system/mms-bridge.service}]
+[Unit]
+Description=MMS Firebase Bridge
+After=network-online.target mosquitto.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=pi
+WorkingDirectory=/home/pi/mms
+EnvironmentFile=/home/pi/mms/.env
+ExecStart=/home/pi/mms/venv/bin/python3 /home/pi/mms/bridge.py
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+WatchdogSec=60
+NotifyAccess=main
+
+[Install]
+WantedBy=multi-user.target
+\end{lstlisting}
+
+Key settings:
+\begin{itemize}[leftmargin=1.5em]
+    \item \texttt{Restart=always}: restart on any exit (crash, OOM, signal)
+    \item \texttt{StartLimitBurst=5}: stop restarting after 5 failures in 60s (prevents runaway restart loop)
+    \item \texttt{WatchdogSec=60}: systemd kills and restarts the bridge if it stops sending watchdog pings within 60s
+    \item \texttt{EnvironmentFile}: loads \texttt{.env} before starting (MQTT credentials, Firebase URL)
+\end{itemize}
+
+\section{Health Check Endpoint}
+
+bridge.py serves a minimal HTTP health check on port 8080:
+
+\begin{lstlisting}[style=bashstyle]
+curl http://192.168.0.10:8080/health
+# Returns:
+{"mqtt_connected": true, "fb_connected": true, "uptime_s": 3600}
+\end{lstlisting}
+
+This endpoint can be polled by a monitoring system or checked manually to confirm the bridge is alive.
+
+\section{MQTT Authentication}
+\label{sec:mqtt_auth}
+
+In the initial deployment, \texttt{allow\_anonymous true} is used to simplify setup. Once all nodes are confirmed working, authentication should be enabled:
+
+\begin{lstlisting}[style=bashstyle]
+# Create password file
+sudo mosquitto_passwd -c /etc/mosquitto/passwd bridge
+sudo mosquitto_passwd /etc/mosquitto/passwd node_1
+# ... repeat for each node (node_1 through node_5)
+
+# Update mms.conf:
+# Change: allow_anonymous true
+# To:     allow_anonymous false
+#         password_file /etc/mosquitto/passwd
+
+sudo systemctl restart mosquitto
+\end{lstlisting}
+
+Update each node's \texttt{secrets.h} with \texttt{MQTT\_USER} and \texttt{MQTT\_PASSWORD} and re-flash.
+
+For per-node topic ACLs (highly recommended before production), add an ACL file:
+
+\begin{lstlisting}[caption={/etc/mosquitto/acl (per-node topic restrictions)}]
+# Bridge: full access
+user bridge
+topic readwrite mms/#
+
+# Per-node: scoped to own topics + global revocation
+user node_1
+topic write mms/nodes/1/status
+topic write mms/nodes/1/event
+topic write mms/nodes/1/heartbeat
+topic read  mms/nodes/1/command
+topic read  mms/nodes/1/config
+topic read  mms/all/revoked
+\end{lstlisting}
+
+Without ACLs, a compromised node could issue commands to other nodes or trigger OTA for the entire lab.

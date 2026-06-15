@@ -1,0 +1,121 @@
+%% Chapter 1 — Project Overview
+\chapter{Project Overview}
+\label{ch:overview}
+
+\section{What Is MMS V2?}
+
+The Machine Management System Version 2 (MMS V2) is an embedded IoT platform for controlling and monitoring access to workshop equipment in the Tinkerers' Lab at IIT Indore. The system enforces that only authorised students can operate specific machines, logs all usage to a cloud database, and provides administrators with real-time monitoring and remote control capabilities via a web dashboard.
+
+The system is deployed on a local area network within the lab and communicates with Firebase (Google Cloud) for permanent data storage and the administrator web interface.
+
+\section{Scope and Objectives}
+
+\subsection{What MMS V2 Does}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Access control}: RFID card authentication at each machine. A card is accepted only if (a) it is a valid MMS V2 card, (b) it is not revoked, and (c) its machine permission bitmask authorises the specific machine.
+    \item \textbf{Machine control}: An ESP32 node controls a relay that interrupts mains power to the machine. Access granted $\rightarrow$ relay ON $\rightarrow$ machine receives power. Session ended $\rightarrow$ relay OFF $\rightarrow$ machine loses power.
+    \item \textbf{Session tracking}: Every session (start time, end time, duration, end reason, student roll number, machine) is logged to Firebase Firestore.
+    \item \textbf{Offline operation}: Access decisions are made locally on the ESP32, without any network call. The system functions even if the Raspberry Pi or Firebase is unreachable.
+    \item \textbf{Remote administration}: Admins can view real-time machine status, stop active sessions, enable or disable machines, revoke lost cards, and trigger firmware updates from a web browser.
+    \item \textbf{Card management}: A kiosk station (Flask web app + MFRC522 reader) issues personalised RFID cards to students. Each card is cryptographically personalised with the student's roll number, PIN hash, and machine permissions.
+\end{itemize}
+
+\subsection{What MMS V2 Does Not Do}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item PIN verification at the machine (Phase 4 — requires rotary encoder user interface, not yet deployed)
+    \item Machine booking or reservation (separate future system)
+    \item Integration with the institute student database (cards are issued manually)
+    \item Control of AC 240V systems beyond the relay/SSR interface (wiring to machines is the lab's responsibility)
+    \item Multi-factor authentication (planned future upgrade)
+\end{itemize}
+
+\section{System Scale}
+
+\begin{table}[H]
+\centering
+\caption{MMS V2 System Scale Parameters}
+\begin{tabular}{L{6cm}L{8cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Maximum machines supported & 32 (per permission bitmask) \\
+Currently deployed & 5 machines \\
+Maximum concurrent users & 32 (one per machine) \\
+Maximum registered users & Unlimited (Firestore) \\
+Expected user base & 300 students \\
+RFID card technology & MIFARE Classic 1K \\
+Card capacity per institution & Effectively unlimited \\
+Offline session buffer per node & \textasciitilde{}500 sessions (50KB LittleFS) \\
+OTA rollout time (all 5 nodes) & \textasciitilde{}5 minutes \\
+Session data retention & Indefinite (Firestore Spark tier: 1GB free) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Deployed Machines}
+
+\begin{table}[H]
+\centering
+\caption{Canonical Machine Registry}
+\label{tab:machines}
+\begin{tabular}{C{1.5cm}L{4.5cm}C{2.5cm}C{2.5cm}C{2cm}}
+\toprule
+\textbf{ID} & \textbf{Machine Name} & \textbf{Session Limit} & \textbf{Permission Bit} & \textbf{Zone} \\
+\midrule
+1 & Creality 3D Printer     & 60 min & Bit 0 & Zone A \\
+2 & Fracktal Laser Cutter   & 30 min & Bit 1 & Zone B \\
+3 & Soldering Station 1     & 15 min & Bit 2 & Zone C \\
+4 & Soldering Station 2     & 15 min & Bit 3 & Zone C \\
+5 & Bosche Grinder          & 20 min & Bit 4 & Zone D \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{warnbox}
+\textbf{WARNING — Three-places-in-sync rule:} Machine IDs must match exactly in \texttt{config.h} (ESP32 firmware), \texttt{scripts/seed\_machines.py} (Firestore seeder), and \texttt{kiosk\_station/config.py} (kiosk permission UI). An ID mismatch means sessions are logged under the wrong machine or cards grant wrong machine access. See Chapter~\ref{ch:firebase} and Appendix~\ref{app:machine_registry}.
+\end{warnbox}
+
+\section{Key Stakeholders}
+
+\begin{description}[leftmargin=2em,font=\bfseries]
+    \item[Lab Coordinator] Responsible for day-to-day operations: issuing cards, managing user accounts, monitoring dashboard, handling card loss/replacement.
+    \item[Admin] Web app admin role: all coordinator functions plus remote stop, machine enable/disable, session log export.
+    \item[Super Admin] Highest privilege: OTA firmware updates, adding/removing admins, Firebase console access.
+    \item[Student] Holds an RFID card. No web app access. Operates machines by tapping card.
+    \item[Future Maintainer] Anyone who maintains or extends the system after the original developers. This document is written primarily for them.
+\end{description}
+
+\section{Glossary}
+
+\begin{longtable}{L{3.5cm}L{10cm}}
+\toprule
+\textbf{Term} & \textbf{Definition} \\
+\midrule
+\endhead
+RFID & Radio Frequency Identification. Contactless card technology. \\
+MIFARE Classic 1K & Type of RFID card with 1024 bytes of data storage in 16 sectors. \\
+ESP32 & Dual-core 240MHz microcontroller with built-in WiFi and Bluetooth, by Espressif. \\
+MQTT & Message Queuing Telemetry Transport. Lightweight publish-subscribe messaging protocol. \\
+Mosquitto & Open-source MQTT broker. Runs on the Raspberry Pi. \\
+Bridge & \texttt{bridge.py} — Python service on RPi that relays data between MQTT and Firebase. \\
+Firebase & Google Cloud platform. MMS V2 uses Firestore, RTDB, Storage, Hosting, and Auth. \\
+Firestore & Firebase document database. Stores permanent records (users, sessions, machines). \\
+RTDB & Firebase Realtime Database. Stores live state (node status, pending commands). \\
+LittleFS & Lightweight filesystem for flash memory. Used on ESP32 for offline session buffering. \\
+NVS & Non-Volatile Storage. ESP32's key-value store. Used to persist configuration. \\
+OTA & Over-The-Air firmware update. \\
+HMAC-SHA256 & Hash-based Message Authentication Code using SHA-256. Used for key derivation and PIN hashing. \\
+Sector key & 6-byte key that unlocks a MIFARE sector for read/write. Derived per-card using HMAC-SHA256. \\
+Permission bitmask & 32-bit unsigned integer. Each bit represents access to one machine. \\
+HC89 & Optical IR slot sensor. Detects when a card is inserted. \\
+Relay & Electrically controlled switch. Opens/closes machine power circuit. \\
+SSR & Solid-State Relay. Semiconductor-based relay, no moving parts. Preferred for high-cycling loads. \\
+WS2812 & Individually addressable RGB LED with integrated controller chip. \\
+SPI & Serial Peripheral Interface. Communication bus shared by RFID reader and primary OLED. \\
+I2C & Inter-Integrated Circuit. Two-wire bus used by secondary OLED. \\
+IST & Indian Standard Time. UTC+5:30. Used for all NTP-synced timestamps on nodes. \\
+TWDT & Task Watchdog Timer. 30-second hardware watchdog on ESP32. Resets if firmware stalls. \\
+\bottomrule
+\end{longtable}
