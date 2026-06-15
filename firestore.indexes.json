@@ -1,0 +1,31 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "sessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "machine_id",   "order": "ASCENDING"  },
+        { "fieldPath": "roll_number",  "order": "ASCENDING"  },
+        { "fieldPath": "start_time",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "machine_id",   "order": "ASCENDING"  },
+        { "fieldPath": "status",       "order": "ASCENDING"  },
+        { "fieldPath": "start_time",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sessions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "roll_number",  "order": "ASCENDING"  },
+        { "fieldPath": "start_time",   "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

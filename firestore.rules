@@ -1,0 +1,70 @@
+rules_version = '2';
+
+// MMS V2 Firestore Security Rules
+//
+// Architecture note:
+//   - The RPi bridge and kiosk use Firebase Admin SDK (server-side).
+//     Admin SDK ALWAYS bypasses these rules — bridge writes to sessions/users
+//     and kiosk writes to users regardless of what is declared here.
+//   - These rules protect the client-side Firebase SDK (web app in browser).
+//
+// Login flow note:
+//   - Login.tsx queries admins/super_admins BEFORE calling signIn() to show
+//     a friendly error before attempting auth. This requires public read on
+//     those collections. Only email addresses are stored there.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // ── users ───────────────────────────────────────────────────────────────
+    // Admins manage users via the web app. Bridge updates last_seen via Admin SDK.
+    match /users/{rollNumber} {
+      allow read, write: if isSignedIn();
+    }
+
+    // ── machines ────────────────────────────────────────────────────────────
+    // All signed-in users can read (needed for public dashboard machine list).
+    // Any signed-in admin can update machine config (session_limit, machine_active, etc.).
+    match /machines/{machineId} {
+      allow read:  if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // ── sessions ────────────────────────────────────────────────────────────
+    // Sessions are written exclusively by the RPi bridge (Admin SDK — bypasses rules).
+    // Web app only reads. Client-side writes are blocked.
+    match /sessions/{sessionId} {
+      allow read:  if isSignedIn();
+      allow write: if false;
+    }
+
+    // ── revoked ─────────────────────────────────────────────────────────────
+    // Any signed-in admin can revoke or unrevoke cards.
+    // Bridge reads via Admin SDK (bypasses rules).
+    match /revoked/{uid} {
+      allow read, write: if isSignedIn();
+    }
+
+    // ── admins ──────────────────────────────────────────────────────────────
+    // Public read required: Login.tsx checks admin email before signIn() call.
+    // Write restricted to signed-in users (super admin manages admins in the UI).
+    match /admins/{docId} {
+      allow read:  if true;
+      allow write: if isSignedIn();
+    }
+
+    // ── super_admins ────────────────────────────────────────────────────────
+    // Public read required: same login flow reason as admins.
+    // Write restricted to signed-in users.
+    match /super_admins/{docId} {
+      allow read:  if true;
+      allow write: if isSignedIn();
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "rules": {
+    "mms": {
+
+      "nodes": {
+        "$machine_id": {
+          ".read":  "auth != null",
+          ".write": false
+        }
+      },
+
+      "commands": {
+        "$machine_id": {
+          ".read":  "auth != null",
+          ".write": "auth != null"
+        }
+      },
+
+      "ota": {
+        ".read":  "auth != null",
+        ".write": "auth != null"
+      },
+
+      "revoked": {
+        ".read":  "auth != null",
+        ".write": false
+      },
+
+      "bridge": {
+        "status": {
+          ".read":  "auth != null",
+          ".write": false
+        }
+      }
+    }
+  }
+}

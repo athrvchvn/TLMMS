@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MMS Card Station — Tinkerers' Lab IIT Indore</title>
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --border: #334155;
+    --primary: #3b82f6; --primary-hover: #2563eb;
+    --success: #22c55e; --error: #ef4444; --warn: #f59e0b;
+    --text: #f1f5f9; --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif;
+         min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .logo { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.05em; color: var(--muted);
+          margin-bottom: 2rem; text-align: center; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 1rem;
+          padding: 2.5rem; width: 100%; max-width: 480px; }
+  h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; }
+  .step-indicator { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+  .step-dot.active { background: var(--primary); }
+  .step-dot.done { background: var(--success); }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.4rem; font-weight: 500; }
+  input[type="text"], input[type="password"] {
+    width: 100%; padding: 0.75rem 1rem; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 0.5rem; color: var(--text); font-size: 1rem; outline: none; transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--primary); }
+  .btn { width: 100%; padding: 0.85rem; border: none; border-radius: 0.5rem; font-size: 1rem;
+         font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 1rem; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-secondary:hover { background: #475569; }
+  .machine-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin: 1rem 0; }
+  .machine-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.8rem;
+                  background: var(--bg); border: 1px solid var(--border); border-radius: 0.5rem;
+                  cursor: pointer; transition: border-color 0.2s; }
+  .machine-item.selected { border-color: var(--primary); background: #1d3a5f; }
+  .machine-item input[type="checkbox"] { accent-color: var(--primary); width: 1rem; height: 1rem; }
+  .machine-item label { margin: 0; cursor: pointer; font-size: 0.85rem; color: var(--text); }
+  .alert { padding: 0.75rem 1rem; border-radius: 0.5rem; margin-top: 1rem; font-size: 0.9rem; }
+  .alert-error { background: #450a0a; border: 1px solid var(--error); color: #fca5a5; }
+  .alert-success { background: #052e16; border: 1px solid var(--success); color: #86efac; }
+  .alert-info { background: #0c1a2e; border: 1px solid var(--primary); color: #93c5fd; }
+  .user-info { background: var(--bg); border: 1px solid var(--border); border-radius: 0.5rem;
+               padding: 1rem; margin-bottom: 1.5rem; }
+  .user-info .name { font-size: 1.1rem; font-weight: 600; }
+  .user-info .roll { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
+  .scan-hint { text-align: center; padding: 1.5rem; color: var(--muted); }
+  .scan-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+  .pin-boxes { display: flex; gap: 0.75rem; justify-content: center; margin: 1rem 0; }
+  .pin-box { width: 3rem; height: 3rem; text-align: center; font-size: 1.5rem; font-weight: 700;
+             background: var(--bg); border: 2px solid var(--border); border-radius: 0.5rem; color: var(--text); }
+  .pin-box:focus { border-color: var(--primary); outline: none; }
+  .hidden { display: none !important; }
+  .spinner { display: inline-block; width: 1rem; height: 1rem; border: 2px solid #ffffff40;
+             border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .progress-step { text-align: center; padding: 2rem 0; }
+  .progress-step .big-icon { font-size: 4rem; margin-bottom: 1rem; }
+  .progress-step p { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="logo">TINKERERS' LAB · IIT INDORE · MMS V2</div>
+
+<div class="card">
+  <!-- Steps indicator -->
+  <div class="step-indicator" id="stepIndicator">
+    <div class="step-dot active" id="dot0"></div>
+    <div class="step-dot" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+    <div class="step-dot" id="dot4"></div>
+  </div>
+
+  <!-- Step 0: Roll number entry -->
+  <div id="step0">
+    <h2>RFID Card Station</h2>
+    <p style="color:var(--muted);margin-bottom:1.5rem;font-size:0.9rem">Enter your roll number to begin card issuance.</p>
+    <label for="rollInput">Roll Number</label>
+    <input type="text" id="rollInput" placeholder="e.g. 220002123" maxlength="9" autocomplete="off">
+    <div id="step0Alert"></div>
+    <button class="btn btn-primary" onclick="submitRoll()">Continue →</button>
+  </div>
+
+  <!-- Step 1: Scan card for UID -->
+  <div id="step1" class="hidden">
+    <h2>Scan Your Card</h2>
+    <div id="userInfoStep1" class="user-info"></div>
+    <div class="scan-hint">
+      <div class="scan-icon">📡</div>
+      <p>Place your RFID card on the reader to scan its UID.</p>
+    </div>
+    <div id="step1Alert"></div>
+    <button class="btn btn-primary" onclick="scanCard()">Scan Card</button>
+    <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="goToStep(0)">← Back</button>
+  </div>
+
+  <!-- Step 2: PIN setup -->
+  <div id="step2" class="hidden">
+    <h2>Set Your PIN</h2>
+    <div id="userInfoStep2" class="user-info"></div>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">Choose a 4-digit PIN for this card. You will need this at the kiosk for re-issuance.</p>
+    <label>Enter PIN</label>
+    <div class="pin-boxes">
+      <input type="password" class="pin-box" id="pin0" maxlength="1" inputmode="numeric">
+      <input type="password" class="pin-box" id="pin1" maxlength="1" inputmode="numeric">
+      <input type="password" class="pin-box" id="pin2" maxlength="1" inputmode="numeric">
+      <input type="password" class="pin-box" id="pin3" maxlength="1" inputmode="numeric">
+    </div>
+    <label style="margin-top:0.75rem">Confirm PIN</label>
+    <div class="pin-boxes">
+      <input type="password" class="pin-box" id="pin0c" maxlength="1" inputmode="numeric">
+      <input type="password" class="pin-box" id="pin1c" maxlength="1" inputmode="numeric">
+      <input type="password" class="pin-box" id="pin2c" maxlength="1" inputmode="numeric">
+      <input type="password" class="pin-box" id="pin3c" maxlength="1" inputmode="numeric">
+    </div>
+    <div id="step2Alert"></div>
+    <button class="btn btn-primary" onclick="submitPin()">Continue →</button>
+    <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="goToStep(1)">← Back</button>
+  </div>
+
+  <!-- Step 3: Machine selection -->
+  <div id="step3" class="hidden">
+    <h2>Select Machines</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">Select the machines this card should grant access to.</p>
+    <div class="machine-grid" id="machineGrid"></div>
+    <div id="step3Alert"></div>
+    <button class="btn btn-primary" onclick="submitMachines()">Write Card →</button>
+    <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="goToStep(2)">← Back</button>
+  </div>
+
+  <!-- Step 4: Writing / result -->
+  <div id="step4" class="hidden">
+    <div id="writingProgress" class="progress-step">
+      <div class="big-icon">⏳</div>
+      <h2>Writing Card...</h2>
+      <p>Place the card on the reader and hold still.</p>
+    </div>
+    <div id="writeSuccess" class="progress-step hidden">
+      <div class="big-icon">✅</div>
+      <h2>Card Ready!</h2>
+      <p id="successMsg"></p>
+      <button class="btn btn-primary" style="margin-top:1.5rem" onclick="goToStep(0)">Issue Another Card</button>
+    </div>
+    <div id="writeError" class="progress-step hidden">
+      <div class="big-icon">❌</div>
+      <h2>Write Failed</h2>
+      <p id="errorMsg" style="color:var(--error)"></p>
+      <button class="btn btn-primary" style="margin-top:1.5rem" onclick="retryWrite()">Retry</button>
+      <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="goToStep(0)">Start Over</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "/api";
+let state = { roll: "", name: "", uid: "", pin: "", machines: [], selectedIds: [] };
+let inactivityTimer;
+
+function resetInactivity() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => { goToStep(0); fetch(`${API}/reset`, {method:"POST"}); }, 5 * 60 * 1000);
+}
+document.addEventListener("click", resetInactivity);
+document.addEventListener("keydown", resetInactivity);
+resetInactivity();
+
+function showAlert(id, msg, type="error") {
+  const el = document.getElementById(id);
+  el.innerHTML = msg ? `<div class="alert alert-${type}">${msg}</div>` : "";
+}
+
+function setStep(n) {
+  for (let i = 0; i <= 4; i++) {
+    document.getElementById(`step${i}`).classList.toggle("hidden", i !== n);
+    const dot = document.getElementById(`dot${i}`);
+    if (dot) {
+      dot.classList.toggle("active", i === n);
+      dot.classList.toggle("done", i < n);
+    }
+  }
+}
+
+function goToStep(n) { setStep(n); }
+
+function userInfoHtml() {
+  return `<div class="name">${state.name || state.roll}</div><div class="roll">${state.roll}</div>`;
+}
+
+async function submitRoll() {
+  const roll = document.getElementById("rollInput").value.trim();
+  showAlert("step0Alert", "");
+  if (!/^\d{9}$/.test(roll)) { showAlert("step0Alert", "Roll number must be exactly 9 digits"); return; }
+
+  const r = await fetch(`${API}/check_user`, {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({roll_number: roll})});
+  const data = await r.json();
+  if (!data.success) { showAlert("step0Alert", data.error); return; }
+
+  state.roll = roll; state.name = data.name; state.machines = data.machines;
+  document.getElementById("userInfoStep1").innerHTML = userInfoHtml();
+  document.getElementById("userInfoStep2").innerHTML = userInfoHtml();
+  setStep(1);
+}
+
+async function scanCard() {
+  showAlert("step1Alert", "Scanning...", "info");
+  const r = await fetch(`${API}/read_uid`, {method:"POST"});
+  const data = await r.json();
+  if (!data.success) { showAlert("step1Alert", data.error); return; }
+  state.uid = data.uid;
+  showAlert("step1Alert", `Card detected: UID ${data.uid}`, "success");
+  setTimeout(() => setStep(2), 800);
+}
+
+function getPin(prefix) {
+  return [0,1,2,3].map(i => document.getElementById(`${prefix}${i}`).value).join("");
+}
+
+function submitPin() {
+  showAlert("step2Alert", "");
+  const pin = getPin("pin");
+  const conf = getPin("pin0c".replace("0c","c").replace("pin","pin"));
+  const pinConf = [0,1,2,3].map(i => document.getElementById(`pin${i}c`).value).join("");
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) { showAlert("step2Alert", "PIN must be 4 digits"); return; }
+  if (pin !== pinConf) { showAlert("step2Alert", "PINs do not match"); return; }
+  state.pin = pin;
+
+  // Build machine checkboxes
+  const grid = document.getElementById("machineGrid");
+  grid.innerHTML = state.machines.map(m => `
+    <div class="machine-item" id="mitem_${m.id}" onclick="toggleMachine('${m.id}')">
+      <input type="checkbox" id="mcheck_${m.id}">
+      <label for="mcheck_${m.id}">${m.name}</label>
+    </div>`).join("");
+  setStep(3);
+}
+
+function toggleMachine(id) {
+  const item = document.getElementById(`mitem_${id}`);
+  const check = document.getElementById(`mcheck_${id}`);
+  check.checked = !check.checked;
+  item.classList.toggle("selected", check.checked);
+}
+
+async function submitMachines() {
+  showAlert("step3Alert", "");
+  const selected = state.machines.filter(m => document.getElementById(`mcheck_${m.id}`)?.checked).map(m => m.id);
+  if (selected.length === 0) { showAlert("step3Alert", "Select at least one machine"); return; }
+  state.selectedIds = selected;
+
+  setStep(4);
+  document.getElementById("writingProgress").classList.remove("hidden");
+  document.getElementById("writeSuccess").classList.add("hidden");
+  document.getElementById("writeError").classList.add("hidden");
+
+  const r = await fetch(`${API}/begin_write`, {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({pin: state.pin, machine_ids: selected, uid: state.uid})});
+  const data = await r.json();
+
+  document.getElementById("writingProgress").classList.add("hidden");
+  if (data.success) {
+    document.getElementById("successMsg").textContent = `Card for ${state.name || state.roll} written with access to ${selected.length} machine(s).`;
+    document.getElementById("writeSuccess").classList.remove("hidden");
+  } else {
+    document.getElementById("errorMsg").textContent = data.message || data.error || "Unknown error";
+    document.getElementById("writeError").classList.remove("hidden");
+  }
+}
+
+async function retryWrite() {
+  document.getElementById("writingProgress").classList.remove("hidden");
+  document.getElementById("writeError").classList.add("hidden");
+  const r = await fetch(`${API}/begin_write`, {method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({pin: state.pin, machine_ids: state.selectedIds, uid: state.uid})});
+  const data = await r.json();
+  document.getElementById("writingProgress").classList.add("hidden");
+  if (data.success) {
+    document.getElementById("successMsg").textContent = `Card for ${state.name || state.roll} written successfully.`;
+    document.getElementById("writeSuccess").classList.remove("hidden");
+  } else {
+    document.getElementById("errorMsg").textContent = data.message || data.error;
+    document.getElementById("writeError").classList.remove("hidden");
+  }
+}
+
+// PIN box auto-advance
+document.querySelectorAll(".pin-box").forEach((box, idx, all) => {
+  box.addEventListener("input", () => {
+    if (box.value && idx < all.length - 1) all[idx+1].focus();
+  });
+  box.addEventListener("keydown", e => {
+    if (e.key === "Backspace" && !box.value && idx > 0) all[idx-1].focus();
+    if (e.key === "Enter") { if (idx >= 7) submitPin(); else all[Math.min(idx+1,all.length-1)].focus(); }
+  });
+});
+
+document.getElementById("rollInput").addEventListener("keydown", e => { if (e.key === "Enter") submitRoll(); });
+</script>
+</body>
+</html>

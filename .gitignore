@@ -1,0 +1,27 @@
+# ── Secrets — never commit these ─────────────────────────────────────────────
+
+# ESP32 node secrets (WiFi, master key, MQTT credentials)
+access_node/secrets.h
+
+# Kiosk Python app secrets (master key)
+kiosk_station/secrets.py
+
+# Kiosk station writer secrets (master key for Arduino firmware)
+kiosk_station/station_writer/secrets_station.h
+
+# Firebase Admin SDK service account credential
+rpi_bridge/service-account.json
+**/service-account.json
+
+# Bridge environment file
+rpi_bridge/.env
+
+# ── Build outputs ─────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# ── OS / editor ──────────────────────────────────────────────────────────────
+.DS_Store
+*.swp
