@@ -18,12 +18,12 @@ The permission bitmask supports 32 machines. Adding machines 6–32 requires:
 
 See [Section 04 — Machine Registry](04_machine_registry.md) for the three-places-in-sync rule.
 
-**`v2/access_node/config.h`** — add to the canonical table comment (firmware read reference only; nodes use their own MACHINE_ID):
+**`firmware/access_node/config.h`** — add to the canonical table comment (firmware read reference only; nodes use their own MACHINE_ID):
 ```cpp
 // Machine 6: Band Saw, 25min, bit 5, Zone E
 ```
 
-**`v2/rpi_bridge/bridge.py` or `config.py`** — if bridge has a machine name map, add the entry:
+**`services/rpi_bridge/bridge.py` or `config.py`** — if bridge has a machine name map, add the entry:
 ```python
 MACHINE_NAMES = {
     ...

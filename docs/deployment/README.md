@@ -66,26 +66,34 @@ Step 14 Full rollout — 15 machines (13)
 ## Critical Files In The Repository
 
 ```
-v2/
+firmware/
 ├── access_node/            ← ESP32 firmware source
 │   ├── config.h            ← Machine ID, name, pin assignments (edit per node)
 │   ├── secrets.h           ← WiFi, MQTT, master key (NEVER commit, gitignored)
 │   └── secrets.h.template  ← Copy this to secrets.h and fill in values
-├── rpi_bridge/
-│   ├── bridge.py           ← Main bridge service
-│   ├── .env.template       ← Copy to .env and fill in values
-│   └── mms-bridge.service  ← systemd unit file
+└── hardware_validation/    ← Standalone test sketches (run before provisioning)
+
+services/
+└── rpi_bridge/
+    ├── bridge.py           ← Main bridge service
+    ├── .env.template       ← Copy to .env and fill in values
+    └── mms-bridge.service  ← systemd unit file
+
+apps/
 ├── kiosk_station/
 │   ├── app.py              ← Flask kiosk application
 │   ├── secrets.py          ← Master key (NEVER commit, gitignored)
 │   ├── secrets.py.template ← Copy this to secrets.py
 │   └── station_writer/     ← Arduino firmware for RFID writer
-├── scripts/
-│   └── seed_machines.py    ← One-time Firestore population
+└── web_app/                ← React admin dashboard
+
+firebase/
 ├── firestore.rules         ← Firestore security rules
 ├── database.rules.json     ← RTDB security rules
-├── firestore.indexes.json  ← Required composite indexes
-└── web_app/                ← React admin dashboard
+└── firestore.indexes.json  ← Required composite indexes
+
+scripts/
+└── seed_machines.py        ← One-time Firestore population
 ```
 
 ---
@@ -94,13 +102,13 @@ v2/
 
 | Secret | File | Who Uses It |
 |---|---|---|
-| WiFi SSID/Password | `access_node/secrets.h` | Each ESP32 node |
-| MQTT credentials | `access_node/secrets.h` | Each ESP32 node |
-| 32-byte master key | `access_node/secrets.h` | Each ESP32 node |
-| 32-byte master key | `kiosk_station/secrets.py` | Python kiosk app |
-| 32-byte master key | `kiosk_station/station_writer/secrets_station.h` | Card writer firmware |
-| Firebase service account | `rpi_bridge/service-account.json` | Bridge |
-| Firebase env vars | `web_app/lab-access-nexus-main/.env` | Web app |
+| WiFi SSID/Password | `firmware/access_node/secrets.h` | Each ESP32 node |
+| MQTT credentials | `firmware/access_node/secrets.h` | Each ESP32 node |
+| 32-byte master key | `firmware/access_node/secrets.h` | Each ESP32 node |
+| 32-byte master key | `apps/kiosk_station/secrets.py` | Python kiosk app |
+| 32-byte master key | `apps/kiosk_station/station_writer/secrets_station.h` | Card writer firmware |
+| Firebase service account | `services/rpi_bridge/service-account.json` | Bridge |
+| Firebase env vars | `apps/web_app/.env` | Web app |
 
 **The master key must be identical in all three locations. A mismatch means cards issued by the kiosk cannot be read by the nodes.**
 

@@ -8,7 +8,7 @@
 
 The machine ID is the single most critical configuration value in MMS V2. It appears in three places simultaneously:
 1. The ESP32 node firmware (`config.h` → `MACHINE_ID`)
-2. The kiosk station Python app (`kiosk_station/config.py` → `MACHINE_IDS` dict)
+2. The kiosk station Python app (`apps/apps/kiosk_station/config.py` → `MACHINE_IDS` dict)
 3. Firestore (`/machines/{id}` document ID)
 
 If these three are inconsistent — even by one number — cards issued for "Soldering Station 1" will be denied on the node claiming to be "Soldering Station 1" (because the permission bit will be wrong), and the node will log events under the wrong machine ID in Firestore.
@@ -38,14 +38,14 @@ If these three are inconsistent — even by one number — cards issued for "Sol
 
 ## The Three Places To Keep In Sync
 
-### Place 1: `access_node/config.h`
+### Place 1: `firmware/access_node/config.h`
 ```cpp
 #define MACHINE_ID    3
 #define MACHINE_NAME  "Soldering Station 1"
 ```
 This is flashed into one specific physical node. Every node gets its own flash with its own MACHINE_ID.
 
-### Place 2: `kiosk_station/config.py`
+### Place 2: `apps/apps/kiosk_station/config.py`
 ```python
 MACHINE_IDS = {
     "Creality 3D Printer":    1,
@@ -83,7 +83,7 @@ Check the current registry above. The next available ID is the highest current I
 
 ### Step 2 — Add to kiosk config
 
-Edit `kiosk_station/config.py`:
+Edit `apps/apps/kiosk_station/config.py`:
 ```python
 MACHINE_IDS = {
     ...
@@ -114,7 +114,7 @@ Firestore → machines → Add document
 
 ### Step 4 — Flash the new node
 
-In `access_node/config.h`:
+In `firmware/access_node/config.h`:
 ```cpp
 #define MACHINE_ID    6
 #define MACHINE_NAME  "New Machine Name"
@@ -147,7 +147,7 @@ In Firebase Console or web app admin:
 Firestore → machines → {id} → edit "name" field
 ```
 
-### Step 2 — Update `kiosk_station/config.py`
+### Step 2 — Update `apps/apps/kiosk_station/config.py`
 
 ```python
 MACHINE_IDS = {
@@ -183,7 +183,7 @@ The bridge will push `{machine_active: false}` to the node. The node will transi
 
 ### Step 2 — Remove from kiosk dropdown
 
-Remove the line from `kiosk_station/config.py`. This prevents the kiosk admin from accidentally granting permissions to the decommissioned machine.
+Remove the line from `apps/apps/kiosk_station/config.py`. This prevents the kiosk admin from accidentally granting permissions to the decommissioned machine.
 
 ### Step 3 — Do NOT reuse the ID
 

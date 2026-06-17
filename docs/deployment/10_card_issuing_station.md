@@ -99,7 +99,7 @@ Python hex (for secrets.py):
 
 ```bash
 # In Arduino IDE:
-# 1. Open kiosk_station/station_writer/station_writer.ino
+# 1. Open apps/kiosk_station/station_writer/station_writer.ino
 # 2. Copy station_writer/secrets_station.h.template to station_writer/secrets_station.h
 # 3. Fill in the master key bytes in secrets_station.h
 # 4. Select board: ESP32 Dev Module (or Arduino Nano if using that)
@@ -130,7 +130,7 @@ The template was not filled in. Fill in the actual key bytes and re-flash.
 ## Step 3 — Set Up the Python Kiosk App
 
 ```bash
-cd v2/kiosk_station
+cd apps/kiosk_station
 
 # Copy secrets template
 cp secrets.py.template secrets.py
@@ -168,7 +168,7 @@ ls /dev/cu.*
 # Look for /dev/cu.SLAB_USBtoUART or /dev/cu.usbserial-...
 ```
 
-In `kiosk_station/config.py`:
+In `apps/apps/kiosk_station/config.py`:
 ```python
 RFID_PORT = "/dev/ttyUSB0"  # change to match your port
 ```
@@ -178,7 +178,7 @@ RFID_PORT = "/dev/ttyUSB0"  # change to match your port
 ## Step 5 — Start the Kiosk App
 
 ```bash
-cd v2/kiosk_station
+cd apps/kiosk_station
 python3 app.py
 
 # Expected output:

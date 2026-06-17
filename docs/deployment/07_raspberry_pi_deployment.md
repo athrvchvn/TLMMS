@@ -206,11 +206,11 @@ cd /home/pi/mms
 # Copy bridge.py from repository
 # Option A: clone the repo
 git clone <your-repo-url> repo
-cp repo/v2/rpi_bridge/bridge.py /home/pi/mms/
-cp repo/v2/rpi_bridge/.env.template /home/pi/mms/.env
+cp repo/services/rpi_bridge/bridge.py /home/pi/mms/
+cp repo/services/rpi_bridge/.env.template /home/pi/mms/.env
 
 # Option B: SFTP upload from laptop
-# sftp pi@192.168.0.10 → put v2/rpi_bridge/bridge.py /home/pi/mms/
+# sftp pi@192.168.0.10 → put services/rpi_bridge/bridge.py /home/pi/mms/
 
 # Create virtual environment
 python3 -m venv /home/pi/mms/venv
@@ -297,7 +297,7 @@ sudo iptables -L INPUT | grep 1883
 ## Step 9 — Systemd Service
 
 ```bash
-sudo cp /home/pi/mms/repo/v2/rpi_bridge/mms-bridge.service /etc/systemd/system/
+sudo cp /home/pi/mms/repo/services/rpi_bridge/mms-bridge.service /etc/systemd/system/
 
 # Or create manually:
 sudo nano /etc/systemd/system/mms-bridge.service

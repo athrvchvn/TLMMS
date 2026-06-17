@@ -22,7 +22,7 @@ The web application is the admin interface for MMS V2. Admins use it to manage u
 ## Step 1 — Configure Environment Variables
 
 ```bash
-cd v2/web_app/lab-access-nexus-main
+cd apps/web_app
 cp .env.example .env
 nano .env
 ```
@@ -49,7 +49,7 @@ VITE_FIREBASE_DATABASE_URL=https://your-project-default-rtdb.asia-southeast1.fir
 ## Step 2 — Build the Application
 
 ```bash
-cd v2/web_app/lab-access-nexus-main
+cd apps/web_app
 
 # Install dependencies
 npm install
@@ -166,7 +166,7 @@ Or do it manually via Firebase Console (same as Step 4 but for `admins` collecti
 
 For development, run locally instead of deploying:
 ```bash
-cd v2/web_app/lab-access-nexus-main
+cd apps/web_app
 npm run dev
 # Opens at http://localhost:5173
 ```

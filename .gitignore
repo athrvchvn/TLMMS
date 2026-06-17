@@ -1,27 +1,59 @@
-# ── Secrets — never commit these ─────────────────────────────────────────────
+# ── Secrets — never commit these ──────────────────────────────────────────────
 
 # ESP32 node secrets (WiFi, master key, MQTT credentials)
-access_node/secrets.h
+firmware/access_node/secrets.h
 
 # Kiosk Python app secrets (master key)
-kiosk_station/secrets.py
+apps/kiosk_station/secrets.py
 
 # Kiosk station writer secrets (master key for Arduino firmware)
-kiosk_station/station_writer/secrets_station.h
+apps/kiosk_station/station_writer/secrets_station.h
 
 # Firebase Admin SDK service account credential
-rpi_bridge/service-account.json
+services/rpi_bridge/service-account.json
 **/service-account.json
 
 # Bridge environment file
-rpi_bridge/.env
+services/rpi_bridge/.env
 
-# ── Build outputs ─────────────────────────────────────────────────────────────
+# Web app environment files (real values should not be committed)
+apps/web_app/.env
+apps/web_app/.env.local
+
+# ── LaTeX build artifacts ──────────────────────────────────────────────────────
+**/build/main.aux
+**/build/main.lof
+**/build/main.log
+**/build/main.lot
+**/build/main.out
+**/build/main.toc
+**/build/texput.*
+**/build/*.pdf
+**/build/*.aux
+**/build/*.log
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.auxlock
+
+# ── Node.js ───────────────────────────────────────────────────────────────────
+node_modules/
+dist/
+.parcel-cache/
+
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+.venv/
+venv/
+*.egg-info/
 
-# ── OS / editor ──────────────────────────────────────────────────────────────
+# ── OS / editor ───────────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
 *.swp
+*.swo
+.idea/
+.vscode/settings.json

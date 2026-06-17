@@ -128,9 +128,9 @@ Serial shows "[ACCESS] DENIED" for a card that should be permitted
     → Card was written by a different kiosk with different master key
     → OR sector key derivation mismatch between kiosk and node
     → Verify master key is identical (same 32 bytes) in:
-        v2/access_node/secrets.h
-        v2/kiosk_station/secrets.py (MASTER_KEY hex)
-        v2/kiosk_station/station_writer/secrets_station.h
+        firmware/access_node/secrets.h
+        apps/kiosk_station/secrets.py (MASTER_KEY hex)
+        apps/apps/kiosk_station/station_writer/secrets_station.h
     → If mismatch confirmed: node must be re-flashed with correct key
       OR re-issue all cards with the node's key
 ```

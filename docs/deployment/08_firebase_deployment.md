@@ -88,10 +88,10 @@ firebase init
 # ◉ Storage (for OTA binaries)
 #
 # Use existing project → select your project
-# Firestore rules file: firestore.rules (already exists)
-# Firestore indexes file: firestore.indexes.json (already exists)
-# RTDB rules file: database.rules.json (already exists)
-# Public directory for hosting: web_app/lab-access-nexus-main/dist
+# Firestore rules file: firebase/firestore.rules (already exists)
+# Firestore indexes file: firebase/firestore.indexes.json (already exists)
+# RTDB rules file: firebase/database.rules.json (already exists)
+# Public directory for hosting: apps/web_app/dist
 # Single-page app: yes
 # GitHub Actions: no (for now)
 ```

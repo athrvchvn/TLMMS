@@ -17,7 +17,7 @@ Hardware validation confirms that every component on a freshly assembled node is
 The complete wiring diagrams, exact expected serial output, pass/fail criteria, and troubleshooting trees for each test are in:
 
 ```
-v2/hardware_validation/EXECUTION_PLAN.md
+firmware/hardware_validation/EXECUTION_PLAN.md
 ```
 
 This section summarises the process and adds the integration test (Test 12) that is not covered in the individual sketches.
@@ -123,7 +123,7 @@ A node **passes** hardware validation if all of the following are true:
 
 After all 12 individual tests pass, run the full-system integration sketch to confirm all hardware works simultaneously — the same way production firmware will use it.
 
-**Sketch:** `v2/hardware_validation/99_full_node/99_full_node.ino`
+**Sketch:** `firmware/hardware_validation/99_full_node/99_full_node.ino`
 
 This sketch:
 1. Initialises all hardware in production order
@@ -140,7 +140,7 @@ If this test passes, the node is ready for production firmware.
 
 ## Recording Results
 
-Use the sign-off log in [EXECUTION_PLAN.md](../hardware_validation/EXECUTION_PLAN.md) to record results for each node.
+Use the sign-off log in [EXECUTION_PLAN.md](../../firmware/hardware_validation/EXECUTION_PLAN.md) to record results for each node.
 
 ```
 Node: Machine ID [ ]  |  Date: ________  |  Engineer: ____________

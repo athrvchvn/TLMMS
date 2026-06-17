@@ -34,10 +34,10 @@ In the Arduino IDE, the `secrets.h` file is opened separately per node. Each nod
 
 ```bash
 # From repo root:
-cp v2/access_node/secrets.h.template v2/access_node/secrets.h
+cp firmware/access_node/secrets.h.template firmware/access_node/secrets.h
 ```
 
-Edit `v2/access_node/secrets.h`:
+Edit `firmware/access_node/secrets.h`:
 ```cpp
 // WiFi
 #define WIFI_SSID     "tlmms"
@@ -60,7 +60,7 @@ static const uint8_t MASTER_KEY[32] = {
 ## Step 2 — Set Machine ID in config.h
 
 ```bash
-# Edit v2/access_node/config.h
+# Edit firmware/access_node/config.h
 ```
 
 Find and update:
@@ -86,7 +86,7 @@ Find and update:
 ## Step 3 — Build and Flash
 
 In Arduino IDE:
-1. Open `v2/access_node/access_node.ino`
+1. Open `firmware/access_node/access_node.ino`
 2. Verify board settings:
    - Board: `ESP32 Dev Module`
    - Partition Scheme: **`Huge APP (3MB No OTA/1MB SPIFFS)`** ← production firmware; use the OTA partition scheme if OTA is needed: `Default 4MB with spiffs`
