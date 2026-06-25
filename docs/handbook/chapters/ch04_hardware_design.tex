@@ -44,6 +44,7 @@ The ESP32 NodeMCU (38-pin variant) is the central controller for each access nod
 26 & Relay IN          & OUT & None & LOW before \texttt{pinMode} \\
 32 & HC89 slot sensor  & IN  & INPUT\_PULLUP & LOW = card present \\
 33 & WS2812 DIN        & OUT & None & Via 470$\Omega$ resistor \\
+36 & Current sensor IN & IN  & None & ADC1 CH0 (SVP); input-only; analog \\
 34 & Encoder CLK       & IN  & EXT 10k$\Omega$ to 3V3 & Input-only; no internal pull-up \\
 35 & Encoder DT        & IN  & EXT 10k$\Omega$ to 3V3 & Input-only; no internal pull-up \\
 25 & Encoder SW        & IN  & INPUT\_PULLUP & Button press \\

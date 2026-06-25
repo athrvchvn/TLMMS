@@ -40,6 +40,7 @@
 | Relay IN | GPIO 26 | OUT | None | Firmware drives LOW before pinMode |
 | HC89 OUT | GPIO 32 | IN | INPUT_PULLUP | LOW = card present |
 | WS2812 DIN | GPIO 33 | OUT | None | Via 470Ω series resistor |
+| Current sensor OUT | GPIO 36 | IN (analog) | None | ADC1 CH0 (SVP) — **input-only, do not drive** |
 | Encoder CLK | GPIO 34 | IN | EXT 10kΩ to 3V3 | Input-only; Phase 4 |
 | Encoder DT | GPIO 35 | IN | EXT 10kΩ to 3V3 | Input-only; Phase 4 |
 | Encoder SW | GPIO 25 | IN | INPUT_PULLUP | Phase 4 |
@@ -282,5 +283,6 @@ Perform this checklist for every node before first power-on.
 - [ ] ESP32 USB port accessible for firmware flashing without disassembly
 - [ ] Physical card can be inserted and removed from HC89 slot freely
 - [ ] Relay output terminals clearly labelled (COM, NO) on enclosure
+- [ ] Current sensor OUT connected to GPIO 36 (input-only — do not apply digital drive to this pin)
 
 **Hardware validation must pass before proceeding to node provisioning.** See [Section 06](06_hardware_validation.md).

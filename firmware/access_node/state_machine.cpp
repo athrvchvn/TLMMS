@@ -2,6 +2,7 @@
 #include "config.h"
 #include "nvs_manager.h"
 #include "slot_sensor.h"
+#include "current_sensor.h"
 #include "rfid_handler.h"
 #include "card_schema.h"
 #include "access_control.h"
@@ -135,6 +136,7 @@ void StateMachine::begin() {
 // ---------------------------------------------------------------------------
 void StateMachine::tick() {
     SlotSensor::update();
+    CurrentSensor::update();
     MqttClient::loop();
     DisplayPrimary::update();
 

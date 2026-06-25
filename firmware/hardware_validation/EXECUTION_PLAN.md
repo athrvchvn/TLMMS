@@ -33,6 +33,7 @@
 | 100µF electrolytic capacitor | 1 | For WS2812 VCC decoupling |
 | WiFi access point (2.4 GHz) | 1 | SSID must be "tlmms" or update define |
 | Raspberry Pi with Mosquitto | 1 | Required for Test 11 only |
+| Current sensor module (ACS712 or similar) | 1 | Required for Test 13 only |
 
 ### Arduino IDE setup (one-time)
 
@@ -79,8 +80,9 @@ Run in this sequence. Each phase uses the same wiring group, so you minimise re-
 | D | 04, 02 | SPI (4 shared wires + extras) | 25 min |
 | E | 03, 06, 07, 08 | Individual GPIO | 40 min |
 | F | 09 | GPIO + external pull-ups | 20 min |
+| G | 13 | 1 analog wire (GPIO 36) | 10 min |
 
-**Total: ~2h 15m** plus time to flash each sketch (~30–60s each).
+**Total: ~2h 25m** plus time to flash each sketch (~30–60s each).
 
 ---
 
@@ -1549,6 +1551,86 @@ Button doesn't register?
 
 ---
 
+# Phase G — Analog Input
+
+---
+
+## Test 13 — Current Sensor (ADC)
+
+**Hardware required:** ESP32, current sensor module (ACS712 5A/20A/30A or equivalent), USB cable, jumper wires
+**Hardware optional:** Multimeter (verify sensor VCC), known load (to see non-zero current reading)
+**Estimated time:** 10 minutes
+
+### Wiring
+
+```
+ESP32 NodeMCU 38-pin          Current sensor module
+─────────────                 ─────────────────────────
+3V3  (pin 2)  ─────────────── VCC   (or 5V — check module datasheet)
+GND  (pin 1)  ─────────────── GND
+GPIO 36       ─────────────── OUT   (analog signal output)
+
+IMPORTANT: GPIO 36 is INPUT-ONLY. Do NOT connect any active driver to it.
+           Do NOT use INPUT_PULLUP (no internal pull-up available).
+           The sensor output drives the pin; no additional resistors needed.
+```
+
+**ACS712 quiescent output voltage:** ~VCC/2 (≈1.65V on 3.3V supply, ≈2.5V on 5V supply). With no current flowing, the ADC reading should be near midscale.
+
+### Required libraries
+None — built-in ADC only.
+
+### Arduino IDE / PlatformIO setup
+- Open `13_current_sensor/13_current_sensor.ino`
+- Upload → Serial Monitor at 115200
+- No `#define` changes needed
+
+### Expected serial output
+```
+========================================
+ MMS V2 — Test 13: Current Sensor (ADC)
+========================================
+[INFO] GPIO 36 = ADC1 CH0 (SVP) — input-only
+[INFO] ADC resolution: 12-bit (0–4095)
+[INFO] ADC range: 0–3.3V (default 11dB attenuation)
+[INFO] No processing applied — raw counts only
+
+[INFO] === Phase 1: Single-shot read ===
+[INFO] GPIO 36 raw ADC = 2048
+[PASS] ADC reads non-saturated value
+
+[INFO] === Phase 2: Continuous monitor (Ctrl+C or reset to stop) ===
+[INFO] Expected: stable non-zero reading when sensor is powered
+
+     #     raw    min   max  uptime_s
+     ----  -----  ----  ----  --------
+        1   2051  2051  2051         1
+        2   2049  2049  2051         2
+        3   2052  2049  2052         3
+```
+
+### Pass criteria
+- Phase 1 ADC reading is between 100 and 3995 (not 0 or 4095, which indicate floating/shorted pin)
+- Continuous monitor shows a stable value (variation < ±100 counts at zero current for ACS712)
+- No compile errors or warnings
+
+### Fail criteria and troubleshooting
+
+| Failure message | Cause | Fix |
+|---|---|---|
+| `[WARN] ADC reads 0 or 4095` | Sensor not powered or OUT not connected | Check VCC on sensor; verify GPIO 36 → OUT wire |
+| Reading is 0 constantly | GPIO 36 shorted to GND | Check wiring; GPIO 36 cannot be configured as output |
+| Reading is 4095 constantly | OUT shorted to VCC or floating high | Check sensor VCC matches expected range; verify GND common |
+| Very noisy reading (±200 counts) | Power supply noise | Add 100nF decoupling cap near sensor VCC–GND |
+
+**Common mistakes:**
+- Connecting sensor OUT to GPIO 34 or GPIO 35 instead of GPIO 36 (all three are input-only, but only 36 is the defined `PIN_CURRENT_SENSOR`)
+- Powering ACS712 at 5V and connecting OUT directly to 3.3V GPIO: output swings 0–5V which exceeds GPIO input limit — use a voltage divider or level shifter, or power the sensor from 3.3V
+
+---
+
+---
+
 # Execution Log Template
 
 Print or keep open while validating. Check each box and record pass/fail.
@@ -1572,6 +1654,7 @@ Test | Component              | Result | Notes
  07  | Relay SSR              | [ ] P/F |
  08  | WS2812 LED             | [ ] P/F | GRB/RGB: ____
  09  | Rotary Encoder EC11    | [ ] P/F | (Phase 4 — skip if N/A)
+ 13  | Current Sensor ADC     | [ ] P/F | Raw ADC reading: ____
 
 All PASS? → Ready for integrated firmware flash.
 Any FAIL? → Do not proceed. Resolve all failures before integration.
@@ -1602,6 +1685,7 @@ Sign-off: _______________________  Date: ___________
 | 33 | WS2812 | OUT | Via 470Ω |
 | 34 | Encoder CLK | IN | Input-only, external pull-up |
 | 35 | Encoder DT | IN | Input-only, external pull-up |
+| 36 | Current sensor | IN (analog) | ADC1 CH0 (SVP); input-only |
 
 ---
 

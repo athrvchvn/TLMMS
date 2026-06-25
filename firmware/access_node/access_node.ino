@@ -15,6 +15,7 @@
 #include "nvs_manager.h"
 #include "rfid_handler.h"
 #include "slot_sensor.h"
+#include "current_sensor.h"
 #include "relay_controller.h"
 #include "session_manager.h"
 #include "mqtt_client.h"
@@ -83,6 +84,7 @@ void setup() {
     // Peripherals
     RFIDHandler::begin();
     SlotSensor::begin();
+    CurrentSensor::begin();
     Logger::begin();
     Revocation::begin();
     Session::begin();

@@ -63,6 +63,9 @@
 // HC89 slot sensor (card present = LOW with INPUT_PULLUP)
 #define PIN_SLOT      32
 
+// Current sensor (ACS712 or similar) — ADC1 CH0 (input-only; no pull-up available)
+#define PIN_CURRENT_SENSOR  36
+
 // WS2812 RGB LED (optional, deferred to Phase 3)
 #define PIN_LED       33
 #define LED_COUNT     1
